@@ -1,0 +1,14 @@
+CHANGELOG
+
+All notable changes to this project will be documented in this file.
+
+
+
+###############################################################################
+[3.0.0] - 15.07.2022
+###############################################################################
+
+1. Added not virtual class frame.
+2. Added getVersion() method to obtain library version.
+3. Added setTrasformMatrix(..) method to set trasformation matrix.
+4. Release() method renamed to relese().
