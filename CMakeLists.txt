@@ -30,7 +30,7 @@ endif()
 ## project configuration
 ################################################################################
 SET(${PARENT}_FRAME                          ON  CACHE BOOL "" ${REWRITE_FORCE})
-SET(${PARENT}_FRAME_TEST                     OFF CACHE BOOL "" ${REWRITE_FORCE})
+SET(${PARENT}_FRAME_TEST                     ON  CACHE BOOL "" ${REWRITE_FORCE})
 
 
 

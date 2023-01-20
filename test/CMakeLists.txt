@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.13)
 ## EXECUTABLE-PROJECT
 ## name and version
 ################################################################################
-project(VideoDataStructuresDemoApp LANGUAGES CXX)
+project(FrameTest LANGUAGES CXX)
 
 
 
@@ -43,10 +43,7 @@ endif()
 ## LINK LIBRARIES
 ## linking all dependencies
 ################################################################################
-find_package (Threads)
-target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
-
-target_link_libraries(${PROJECT_NAME} VideoDataStructures)
+target_link_libraries(${PROJECT_NAME} Frame)
 
 
 

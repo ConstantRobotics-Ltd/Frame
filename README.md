@@ -9,6 +9,7 @@
   - [serialize(...)](#serialize)
   - [deserialize(...)](#deserialize)
   - [operator ==](#operator-==)
+  - [operator !=](#operator-!=)
   - [public members](#public-members)
   
 
@@ -147,6 +148,21 @@ bool deserialize(uint8_t* data, int size);
  * @return TRUE if the frames are identical or FALSE.
  */
 bool operator== (const Frame& src);
+```
+
+##### Description
+
+*Operator to compare two frame objects.*
+
+### operator !=
+
+```cpp
+/**
+ * @brief Operator "!=". Operator to compare two frame objects.
+ * @param src Source frame object.
+ * @return TRUE if the frames are not identical or FALSE.
+ */
+bool operator!= (const Frame& src);
 ```
 
 ##### Description

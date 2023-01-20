@@ -181,7 +181,7 @@ Frame::~Frame()
 
 
 
-/// Copy operator. 
+/// Copy operator.
 Frame &Frame::operator=(const Frame &src)
 {
     // Check yourself.
@@ -270,7 +270,7 @@ Frame &Frame::operator=(const Frame &src)
 
 
 
-/// Clone frame to another. 
+/// Clone frame to another.
 void Frame::cloneTo(Frame& dst)
 {
     // Check yourself.
@@ -297,7 +297,7 @@ void Frame::cloneTo(Frame& dst)
 
 
 
-/// Compare operator. 
+/// Compare operator.
 bool Frame::operator==(const Frame &src)
 {
     // Check yourself.
@@ -317,11 +317,42 @@ bool Frame::operator==(const Frame &src)
     if (data == src.data)
         return true;
 
-    for (int i = 0; i < size; ++i)
-        if (data[i] != src.data[i])
-            return false;
+    if (size > 0 && src.size > 0)
+        for (uint32_t i = 0; i < size; ++i)
+            if (data[i] != src.data[i])
+                return false;
 
     return true;
+}
+
+
+
+/// Compare operator.
+bool Frame::operator!=(const Frame &src)
+{
+    // Check yourself.
+    if (this == &src)
+        return false;
+
+    // Check frame atributes.
+    if (width != src.width ||
+        height != src.height ||
+        fourcc != src.fourcc ||
+        frameId != src.frameId ||
+        sourceId != src.sourceId ||
+        size != src.size)
+        return true;
+
+    // Compare frame data.
+    if (data == src.data)
+        return false;
+
+    if (size > 0 && src.size > 0)
+        for (uint32_t i = 0; i < size; ++i)
+            if (data[i] != src.data[i])
+                return true;
+
+    return false;
 }
 
 
@@ -470,7 +501,7 @@ bool Frame::deserialize(uint8_t* _data, int _size)
             memset(data, 0, size);
         }
     }
-    
+
     // Copy atributes.
     width = w;
     height = h;
@@ -481,8 +512,8 @@ bool Frame::deserialize(uint8_t* _data, int _size)
 
     // Copy data.
     if (size > 0)
-        memcpy(data, &data[pos], size);
-    
+        memcpy(data, &_data[pos], size);
+
     return true;
 }
 

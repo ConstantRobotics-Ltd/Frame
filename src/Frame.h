@@ -84,6 +84,13 @@ public:
     Frame& operator= (const Frame& src);
 
     /**
+     * @brief Operator "!=". Operator to compare two frame objects.
+     * @param src Source frame object.
+     * @return TRUE if the frames are not identical or FALSE.
+     */
+    bool operator!= (const Frame& src);
+
+    /**
      * @brief Operator "==". Operator to compare two frame objects.
      * @param src Source frame object.
      * @return TRUE if the frames are identical or FALSE.
@@ -119,14 +126,14 @@ public:
 
     /// Frame width (pixels).
     uint32_t width{0};
-    /// Frame height (pixels). 
+    /// Frame height (pixels).
     uint32_t height{0};
-    /// FOURCC code of data format. 
+    /// FOURCC code of data format.
     Fourcc fourcc{Fourcc::YUV1};
-    /// Frame data size (bytes). 
+    /// Frame data size (bytes).
     uint32_t size{0};
-    /// Pointer to data buffer. 
-    uint8_t* data{nullptr}; 
+    /// Pointer to data buffer.
+    uint8_t* data{nullptr};
     /// ID of frame.
     uint32_t frameId{0};
     /// ID of video source.
