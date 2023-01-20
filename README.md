@@ -5,8 +5,6 @@
   - [CONSTRUCTOR AND DESTRUCTOR](#constructor-and-destructor)
   - [getVersion(..)](#getversion)
   - [cloneTo(...)](#cloneto)
-  - [setTransformMatrix(..)](#settransformmatrix)
-  - [getTransformMatrix(...)](#gettransformmatrix)
   - [release(..)](#release)
   - [serialize(...)](#serialize)
   - [deserialize(...)](#deserialize)
@@ -40,7 +38,6 @@ Frame();
  * @param data Pointer to data buffer.
  * @param frameId ID of frame.
  * @param sourceId ID of video source.
- * @param matrix Image transformation matrix[3][3].
  */
 Frame(uint32_t width,
       uint32_t height,
@@ -48,8 +45,7 @@ Frame(uint32_t width,
       uint32_t size = 0,
       uint8_t* data = nullptr,
       uint32_t frameId = 0,
-      uint32_t sourceId = 0,
-      float matrix[3][3] = {});
+      uint32_t sourceId = 0);
 /**
  * @brief Copy class constructor.
  * @param src Source class object.
@@ -97,34 +93,6 @@ void cloneTo(Frame& dst);
 ##### Description
 
 *Method copies frame atributes and copy pointer to frame data instead of copy data.*
-
-### setTransformMatrix(...)
-
-```cpp
-/**
- * @brief Set transform matrix.
- * @param matrix Transformation matrix[3][3].
- */
-void setTransformMatrix(const float matrix[3][3]);
-```
-
-##### Description
-
-*Method copies transformation matrix data.*
-
-### getTransformMatrix(...)
-
-```cpp
-/**
- * @brief Method to get transform matrix.
- * @param matrix Pointer to transformation matrix.
- */
-void getTransformMatrix(float matrix[3][3]);
-```
-
-#### Description
-
-*Method to obtain transformation matrix.*
 
 ### release(..)
 

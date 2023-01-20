@@ -59,18 +59,12 @@ public:
      * @param fourcc FOURCC code of data format.
      * @param size Frame data size (bytes).
      * @param data Pointer to data buffer.
-     * @param frameId ID of frame.
-     * @param sourceId ID of video source.
-     * @param matrix Image transformation matrix[3][3].
      */
     Frame(uint32_t width,
           uint32_t height,
           Fourcc fourcc,
           uint32_t size = 0,
-          uint8_t* data = nullptr,
-          uint32_t frameId = 0,
-          uint32_t sourceId = 0,
-          float matrix[3][3] = {});
+          uint8_t* data = nullptr);
 
     /**
      * @brief Copy class constructor.
@@ -103,18 +97,6 @@ public:
     void cloneTo(Frame& dst);
 
     /**
-     * @brief Set transform matrix.
-     * @param matrix Transformation matrix[3][3].
-     */
-    void setTransformMatrix(const float matrix[3][3]);
-
-    /**
-     * @brief Get transform matrix.
-     * @param matrix Pointer to transformation matrix.
-     */
-    void getTransformMatrix(float matrix[3][3]);
-
-    /**
      * @brief Free frame memory.
      */
     void release();
@@ -122,7 +104,7 @@ public:
     /**
      * @brief Serialize frame data. The method will encode data with params.
      * @param data Pointer to data buffer.
-     *             Buffer size mus be >= frame data size + 62.
+     *             Buffer size mus be >= frame data size + 26.
      * @param size Size of serialized data.
      */
     void serialize(uint8_t* data, int& size);
@@ -149,8 +131,6 @@ public:
     uint32_t frameId{0};
     /// ID of video source.
     uint32_t sourceId{0};
-    /// Transformation matrix.
-    float transformMatrix[3][3]; 
 };
 }
 }
