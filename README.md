@@ -37,16 +37,12 @@ Frame();
  * @param fourcc FOURCC code of data format.
  * @param size Frame data size (bytes).
  * @param data Pointer to data buffer.
- * @param frameId ID of frame.
- * @param sourceId ID of video source.
  */
 Frame(uint32_t width,
       uint32_t height,
       Fourcc fourcc,
       uint32_t size = 0,
-      uint8_t* data = nullptr,
-      uint32_t frameId = 0,
-      uint32_t sourceId = 0);
+      uint8_t* data = nullptr);
 /**
  * @brief Copy class constructor.
  * @param src Source class object.
