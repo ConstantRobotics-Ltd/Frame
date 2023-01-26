@@ -150,7 +150,7 @@ bool constructorTest()
     uint8_t* testData = new uint8_t[640 * 480 * 3];
     for (int i = 0; i < 640 * 480 * 3; ++i)
         testData[i] = (uint8_t)(rand() % 255);
-    Frame frame3(640, 480, Fourcc::YUV1, 640 * 480 * 3, testData);
+    Frame frame3(640, 480, Fourcc::YUV24, 640 * 480 * 3, testData);
 
     // Check parameters.
     if (frame3.size != 640 * 480 * 3)
@@ -183,7 +183,7 @@ bool constructorTest()
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame3.fourcc != Fourcc::YUV1)
+    if (frame3.fourcc != Fourcc::YUV24)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
@@ -213,7 +213,7 @@ bool copyTest()
     Frame frame3(1280, 720, Fourcc::UYVY);
 
     // Fill frame data.
-    for (int i = 0; i < frame3.size; ++i)
+    for (uint32_t i = 0; i < frame3.size; ++i)
         frame3.data()[i] = (uint8_t)(rand() % 255);
 
     // Copy frame.
@@ -251,7 +251,7 @@ bool copyTest()
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    for (int i = 0; i < frame3.size; ++i)
+    for (uint32_t i = 0; i < frame3.size; ++i)
     {
         if (frame1.data()[i] != frame3.data()[i])
         {
@@ -290,7 +290,7 @@ bool copyTest()
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    for (int i = 0; i < frame3.size; ++i)
+    for (uint32_t i = 0; i < frame3.size; ++i)
     {
         if (frame2.data()[i] != frame3.data()[i])
         {
@@ -312,7 +312,7 @@ bool cloneTest()
     Frame* frame3 = new Frame(1280, 720, Fourcc::UYVY);
 
     // Fill frame data.
-    for (int i = 0; i < frame3->size; ++i)
+    for (uint32_t i = 0; i < frame3->size; ++i)
         frame3->data()[i] = (uint8_t)(rand() % 255);
 
     // Clone frame.
@@ -409,7 +409,7 @@ bool compareTest()
     Frame frame3(1280, 720, Fourcc::UYVY);
 
     // Fill frame data.
-    for (int i = 0; i < frame3.size; ++i)
+    for (uint32_t i = 0; i < frame3.size; ++i)
         frame3.data()[i] = (uint8_t)(rand() % 255);
 
     // Copy frame.
@@ -450,10 +450,10 @@ bool serializationTest()
 {
     // Init frames.
     Frame srcFrame(640, 480, Fourcc::BGR24);
-    Frame dstFrame(1280, 720, Fourcc::YUV1);
+    Frame dstFrame(1280, 720, Fourcc::YUV24);
 
     // Fill source frame.
-    for (int i = 0; i < srcFrame.size; ++i)
+    for (uint32_t i = 0; i < srcFrame.size; ++i)
         srcFrame.data()[i] = (uint8_t)(rand() % 255);
 
     // Serialize data.
@@ -501,7 +501,7 @@ bool serializationTest()
     }
 
     // Compare frame data.
-    for (int i = 0; i < srcFrame.size; ++i)
+    for (uint32_t i = 0; i < srcFrame.size; ++i)
     {
         if (srcFrame.data()[i] != dstFrame.data()[i])
         {

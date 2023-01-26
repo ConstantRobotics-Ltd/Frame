@@ -19,17 +19,45 @@ namespace video
  */
 enum class Fourcc
 {
-    RGB24 = MAKE_FOURCC_CODE('R', 'G', 'B', 'R'),
-    BGR24 = MAKE_FOURCC_CODE('B', 'G', 'R', 'B'),
+    /// RGB 24bit pixel format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-rgb.html#v4l2-pix-fmt-rgb24
+    RGB24 = MAKE_FOURCC_CODE('R', 'G', 'B', '3'),
+    /// BGR 24bit pixel format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-rgb.html#v4l2-pix-fmt-bgr24
+    BGR24 = MAKE_FOURCC_CODE('B', 'G', 'R', '3'),
+    /// YUYV 16bits per pixel format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-packed-yuv.html#v4l2-pix-fmt-yuyv
+    YUYV  = MAKE_FOURCC_CODE('Y', 'U', 'Y', 'V'),
+    /// UYVY 16bits per pixel format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-packed-yuv.html#v4l2-pix-fmt-vyuy
     UYVY  = MAKE_FOURCC_CODE('U', 'Y', 'V', 'Y'),
-    Y800  = MAKE_FOURCC_CODE('Y', '8', '0', '0'),
-    YUY2  = MAKE_FOURCC_CODE('Y', 'U', 'Y', '2'),
-    YUV1  = MAKE_FOURCC_CODE('Y', 'U', 'V', '1'),
+    /// Grayscale 8bit.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-yuv-luma.html#v4l2-pix-fmt-grey
+    GRAY  = MAKE_FOURCC_CODE('G', 'R', 'A', 'Y'),
+    /// YUV 24bit per pixel format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-packed-yuv.html#v4l2-pix-fmt-yuv24
+    YUV24  = MAKE_FOURCC_CODE('Y', 'U', 'V', '3'),
+    /// NV12 pixel format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-yuv-planar.html#v4l2-pix-fmt-nv12
     NV12  = MAKE_FOURCC_CODE('N', 'V', '1', '2'),
+    /// NV21 pixel format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-yuv-planar.html#v4l2-pix-fmt-nv21
+    NV21  = MAKE_FOURCC_CODE('N', 'V', '2', '1'),
+    /// YUV420 (YU12) - Planar pixel format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-yuv-planar.html#v4l2-pix-fmt-yuv420
+    YUV420 = MAKE_FOURCC_CODE('Y', 'U', '1', '2'),
+    /// YVY420 (YV12) - Planar pixel format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-yuv-planar.html#v4l2-pix-fmt-yuv420
+    YVU420 = MAKE_FOURCC_CODE('Y', 'V', '1', '2'),
+    /// JPEG compressed format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-compressed.html#v4l2-pix-fmt-jpeg
     JPEG  = MAKE_FOURCC_CODE('J', 'P', 'E', 'G'),
-    JPG2  = MAKE_FOURCC_CODE('J', 'P', 'G', '2'),
+    /// H264 compressed format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-compressed.html#v4l2-pix-fmt-h264
     H264  = MAKE_FOURCC_CODE('H', '2', '6', '4'),
-    H265  = MAKE_FOURCC_CODE('H', '2', '6', '5')
+    /// HEVC compressed format.
+    /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-compressed.html#v4l2-pix-fmt-hevc
+    HEVC  = MAKE_FOURCC_CODE('H', 'E', 'V', 'C')
 };
 
 
@@ -131,13 +159,12 @@ public:
     uint8_t* data();
 
 
-
     /// Frame width (pixels).
     uint32_t width{0};
     /// Frame height (pixels).
     uint32_t height{0};
     /// FOURCC code of data format.
-    Fourcc fourcc{Fourcc::YUV1};
+    Fourcc fourcc{Fourcc::YUV24};
     /// Frame data size (bytes).
     uint32_t size{0};
     /// ID of frame.
@@ -149,7 +176,6 @@ private:
 
     /// Frame data buffer.
     std::shared_ptr<uint8_t[]> buffer{nullptr};
-
 };
 }
 }

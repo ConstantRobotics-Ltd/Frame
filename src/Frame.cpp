@@ -42,38 +42,28 @@ Frame::Frame(uint32_t _width,
     // Calculate frame data size according to pixel format.
     switch (_fourcc)
     {
-    case Fourcc::RGB24:
-        size = _width * _height * 3;
-        break;
     case Fourcc::BGR24:
+    case Fourcc::RGB24:
+    case Fourcc::YUV24:
         size = _width * _height * 3;
         break;
+    case Fourcc::NV12:
+    case Fourcc::NV21:
+    case Fourcc::YUV420:
+    case Fourcc::YVU420:
+        size = _width * (_height + _height / 2);
+        break;
+    case Fourcc::YUYV:
     case Fourcc::UYVY:
         size = _width * _height * 2;
         break;
-    case Fourcc::YUY2:
-        size = _width * _height * 2;
-        break;
-    case Fourcc::Y800:
-        size = _width * _height;
-        break;
-    case Fourcc::NV12:
-        size = _width * (_height + _height / 2);
-        break;
-    case Fourcc::YUV1:
-        size = _width * _height * 3;
-        break;
     case Fourcc::JPEG:
-        size = _width * _height * 4;
-        break;
-    case Fourcc::JPG2:
-        size = _width * _height * 4;
-        break;
     case Fourcc::H264:
+    case Fourcc::HEVC:
         size = _width * _height * 4;
         break;
-    case Fourcc::H265:
-        size = _width * _height * 4;
+    case Fourcc::GRAY:
+        size = _width * _height;
         break;
     default:
         return;
@@ -116,38 +106,28 @@ Frame::Frame(Frame &src)
     // Calculate frame data size according to pixel format.
     switch (fourcc)
     {
-    case Fourcc::RGB24:
-        size = width * height * 3;
-        break;
     case Fourcc::BGR24:
+    case Fourcc::RGB24:
+    case Fourcc::YUV24:
         size = width * height * 3;
         break;
+    case Fourcc::NV12:
+    case Fourcc::NV21:
+    case Fourcc::YUV420:
+    case Fourcc::YVU420:
+        size = width * (height + height / 2);
+        break;
+    case Fourcc::YUYV:
     case Fourcc::UYVY:
         size = width * height * 2;
         break;
-    case Fourcc::YUY2:
-        size = width * height * 2;
-        break;
-    case Fourcc::Y800:
-        size = width * height;
-        break;
-    case Fourcc::NV12:
-        size = width * (height + height / 2);
-        break;
-    case Fourcc::YUV1:
-        size = width * height * 3;
-        break;
     case Fourcc::JPEG:
-        size = width * height * 4;
-        break;
-    case Fourcc::JPG2:
-        size = width * height * 4;
-        break;
     case Fourcc::H264:
+    case Fourcc::HEVC:
         size = width * height * 4;
         break;
-    case Fourcc::H265:
-        size = width * height * 4;
+    case Fourcc::GRAY:
+        size = width * height;
         break;
     default:
         return;
@@ -210,38 +190,28 @@ Frame &Frame::operator=(Frame &src)
         // Calculate frame data size according to pixel format.
         switch (fourcc)
         {
-        case Fourcc::RGB24:
-            size = width * height * 3;
-            break;
         case Fourcc::BGR24:
+        case Fourcc::RGB24:
+        case Fourcc::YUV24:
             size = width * height * 3;
             break;
+        case Fourcc::NV12:
+        case Fourcc::NV21:
+        case Fourcc::YUV420:
+        case Fourcc::YVU420:
+            size = width * (height + height / 2);
+            break;
+        case Fourcc::YUYV:
         case Fourcc::UYVY:
             size = width * height * 2;
             break;
-        case Fourcc::YUY2:
-            size = width * height * 2;
-            break;
-        case Fourcc::Y800:
-            size = width * height;
-            break;
-        case Fourcc::NV12:
-            size = width * (height + height / 2);
-            break;
-        case Fourcc::YUV1:
-            size = width * height * 3;
-            break;
         case Fourcc::JPEG:
-            size = width * height * 4;
-            break;
-        case Fourcc::JPG2:
-            size = width * height * 4;
-            break;
         case Fourcc::H264:
+        case Fourcc::HEVC:
             size = width * height * 4;
             break;
-        case Fourcc::H265:
-            size = width * height * 4;
+        case Fourcc::GRAY:
+            size = width * height;
             break;
         default:
             return *this;
@@ -450,40 +420,30 @@ bool Frame::deserialize(uint8_t* _data, int _size)
         buffer.reset();
 
         // Calculate frame data size according to pixel format.
-        switch ((Fourcc)f)
+        switch (fourcc)
         {
-        case Fourcc::RGB24:
-            size = w * h * 3;
-            break;
         case Fourcc::BGR24:
-            size = w * h * 3;
-            break;
-        case Fourcc::UYVY:
-            size = w * h * 2;
-            break;
-        case Fourcc::YUY2:
-            size = w * h * 2;
-            break;
-        case Fourcc::Y800:
-            size = w * h;
+        case Fourcc::RGB24:
+        case Fourcc::YUV24:
+            size = width * height * 3;
             break;
         case Fourcc::NV12:
-            size = w * (h + h / 2);
+        case Fourcc::NV21:
+        case Fourcc::YUV420:
+        case Fourcc::YVU420:
+            size = width * (height + height / 2);
             break;
-        case Fourcc::YUV1:
-            size = w * h * 3;
+        case Fourcc::YUYV:
+        case Fourcc::UYVY:
+            size = width * height * 2;
             break;
         case Fourcc::JPEG:
-            size = w * h * 4;
-            break;
-        case Fourcc::JPG2:
-            size = w * h * 4;
-            break;
         case Fourcc::H264:
-            size = w * h * 4;
+        case Fourcc::HEVC:
+            size = width * height * 4;
             break;
-        case Fourcc::H265:
-            size = w * h * 4;
+        case Fourcc::GRAY:
+            size = width * height;
             break;
         default:
             return false;
