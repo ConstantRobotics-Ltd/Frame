@@ -70,7 +70,7 @@ public:
      * @brief Copy class constructor.
      * @param src Source class object.
      */
-    Frame(const Frame& src);
+    Frame(Frame& src);
 
     /**
      * @brief Class destructor.
@@ -81,21 +81,21 @@ public:
      * @brief Operator "=". Operator makes full copy of data.
      * @param src Source frame object.
      */
-    Frame& operator= (const Frame& src);
+    Frame& operator= (Frame& src);
 
     /**
      * @brief Operator "!=". Operator to compare two frame objects.
      * @param src Source frame object.
      * @return TRUE if the frames are not identical or FALSE.
      */
-    bool operator!= (const Frame& src);
+    bool operator!= (Frame& src);
 
     /**
      * @brief Operator "==". Operator to compare two frame objects.
      * @param src Source frame object.
      * @return TRUE if the frames are identical or FALSE.
      */
-    bool operator== (const Frame& src);
+    bool operator== (Frame& src);
 
     /**
      * @brief Clone data. Method copies frame and copy just pointer to data.
@@ -124,6 +124,14 @@ public:
      */
     bool deserialize(uint8_t* data, int size);
 
+    /**
+     * @brief Get pointer to frame data.
+     * @return Pointer to frame data.
+     */
+    uint8_t* data();
+
+
+
     /// Frame width (pixels).
     uint32_t width{0};
     /// Frame height (pixels).
@@ -132,12 +140,16 @@ public:
     Fourcc fourcc{Fourcc::YUV1};
     /// Frame data size (bytes).
     uint32_t size{0};
-    /// Pointer to data buffer.
-    uint8_t* data{nullptr};
     /// ID of frame.
     uint32_t frameId{0};
     /// ID of video source.
     uint32_t sourceId{0};
+
+private:
+
+    /// Frame data buffer.
+    std::shared_ptr<uint8_t[]> buffer{nullptr};
+
 };
 }
 }

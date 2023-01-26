@@ -100,7 +100,7 @@ bool constructorTest()
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame1.data != nullptr)
+    if (frame1.data() != nullptr)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
@@ -135,7 +135,7 @@ bool constructorTest()
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame2.data == nullptr)
+    if (frame2.data() == nullptr)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
@@ -178,7 +178,7 @@ bool constructorTest()
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame3.data == nullptr)
+    if (frame3.data() == nullptr)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
@@ -192,7 +192,7 @@ bool constructorTest()
     // Check data.
     for (int i = 0; i < 640 * 480 * 3; ++i)
     {
-        if (testData[i] != frame3.data[i])
+        if (testData[i] != frame3.data()[i])
         {
             cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
             return false;
@@ -214,7 +214,7 @@ bool copyTest()
 
     // Fill frame data.
     for (int i = 0; i < frame3.size; ++i)
-        frame3.data[i] = (uint8_t)(rand() % 255);
+        frame3.data()[i] = (uint8_t)(rand() % 255);
 
     // Copy frame.
     frame1 = frame3;
@@ -253,7 +253,7 @@ bool copyTest()
     }
     for (int i = 0; i < frame3.size; ++i)
     {
-        if (frame1.data[i] != frame3.data[i])
+        if (frame1.data()[i] != frame3.data()[i])
         {
             cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
             return false;
@@ -292,7 +292,7 @@ bool copyTest()
     }
     for (int i = 0; i < frame3.size; ++i)
     {
-        if (frame2.data[i] != frame3.data[i])
+        if (frame2.data()[i] != frame3.data()[i])
         {
             cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
             return false;
@@ -308,92 +308,92 @@ bool cloneTest()
 {
     // Create frames.
     Frame frame1;
-    Frame frame2(640, 480, Fourcc::NV12);
-    Frame frame3(1280, 720, Fourcc::UYVY);
+    Frame* frame2 = new Frame(640, 480, Fourcc::NV12);
+    Frame* frame3 = new Frame(1280, 720, Fourcc::UYVY);
 
     // Fill frame data.
-    for (int i = 0; i < frame3.size; ++i)
-        frame3.data[i] = (uint8_t)(rand() % 255);
+    for (int i = 0; i < frame3->size; ++i)
+        frame3->data()[i] = (uint8_t)(rand() % 255);
 
     // Clone frame.
-    frame3.cloneTo(frame1);
-    frame3.cloneTo(frame2);
+    frame3->cloneTo(frame1);
+    frame3->cloneTo(*frame2);
 
     // Compare parameters.
-    if (frame1.size != frame3.size)
+    if (frame1.size != frame3->size)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame1.width != frame3.width)
+    if (frame1.width != frame3->width)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame1.height != frame3.height)
+    if (frame1.height != frame3->height)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame1.fourcc != frame3.fourcc)
+    if (frame1.fourcc != frame3->fourcc)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame1.sourceId != frame3.sourceId)
+    if (frame1.sourceId != frame3->sourceId)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame1.frameId != frame3.frameId)
+    if (frame1.frameId != frame3->frameId)
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
-    if (frame1.data != frame3.data)
-    {
-        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
-        return false;
-    }
-
-    if (frame2.size != frame3.size)
-    {
-        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
-        return false;
-    }
-    if (frame2.width != frame3.width)
-    {
-        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
-        return false;
-    }
-    if (frame2.height != frame3.height)
-    {
-        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
-        return false;
-    }
-    if (frame2.fourcc != frame3.fourcc)
-    {
-        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
-        return false;
-    }
-    if (frame2.sourceId != frame3.sourceId)
-    {
-        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
-        return false;
-    }
-    if (frame2.frameId != frame3.frameId)
-    {
-        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
-        return false;
-    }
-    if (frame2.data != frame3.data)
+    if (frame1.data() != frame3->data())
     {
         cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
         return false;
     }
 
-    frame1.data = nullptr;
-    frame2.data = nullptr;
+    if (frame2->size != frame3->size)
+    {
+        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
+        return false;
+    }
+    if (frame2->width != frame3->width)
+    {
+        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
+        return false;
+    }
+    if (frame2->height != frame3->height)
+    {
+        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
+        return false;
+    }
+    if (frame2->fourcc != frame3->fourcc)
+    {
+        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
+        return false;
+    }
+    if (frame2->sourceId != frame3->sourceId)
+    {
+        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
+        return false;
+    }
+    if (frame2->frameId != frame3->frameId)
+    {
+        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
+        return false;
+    }
+    if (frame2->data() != frame3->data())
+    {
+        cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
+        return false;
+    }
+
+    delete frame2;
+    delete frame3;
 
     return true;
 }
@@ -410,7 +410,7 @@ bool compareTest()
 
     // Fill frame data.
     for (int i = 0; i < frame3.size; ++i)
-        frame3.data[i] = (uint8_t)(rand() % 255);
+        frame3.data()[i] = (uint8_t)(rand() % 255);
 
     // Copy frame.
     frame1 = frame3;
@@ -454,7 +454,7 @@ bool serializationTest()
 
     // Fill source frame.
     for (int i = 0; i < srcFrame.size; ++i)
-        srcFrame.data[i] = (uint8_t)(rand() % 255);
+        srcFrame.data()[i] = (uint8_t)(rand() % 255);
 
     // Serialize data.
     uint8_t* data = new uint8_t[1920 * 1080 * 4];
@@ -503,7 +503,7 @@ bool serializationTest()
     // Compare frame data.
     for (int i = 0; i < srcFrame.size; ++i)
     {
-        if (srcFrame.data[i] != dstFrame.data[i])
+        if (srcFrame.data()[i] != dstFrame.data()[i])
         {
             cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << endl;
             return false;

@@ -56,7 +56,7 @@ Frame(const Frame& src);
  * @brief Operator "=". Operator makes full copy of data.
  * @param src Source fram object.
  */
-Frame& operator= (const Frame& src);
+Frame& operator= (Frame& src);
 ```
 
 ##### Description
@@ -143,12 +143,26 @@ bool deserialize(uint8_t* data, int size);
  * @param src Source frame object.
  * @return TRUE if the frames are identical or FALSE.
  */
-bool operator== (const Frame& src);
+bool operator== (Frame& src);
 ```
 
 ##### Description
 
 *Operator to compare two frame objects.*
+
+### data()
+
+```cpp
+/**
+ * @brief Get pointer to frame data.
+ * @return Pointer to frame data.
+ */
+uint8_t* data();
+```
+
+##### Description
+
+*Method to get pointer to frame data.*
 
 ### operator !=
 
@@ -158,7 +172,7 @@ bool operator== (const Frame& src);
  * @param src Source frame object.
  * @return TRUE if the frames are not identical or FALSE.
  */
-bool operator!= (const Frame& src);
+bool operator!= (Frame& src);
 ```
 
 ##### Description
@@ -176,8 +190,6 @@ uint32_t height{0};
 Fourcc fourcc{Fourcc::YUV1};
 /// Frame data size (bytes). 
 uint32_t size{0};
-/// Pointer to data buffer. 
-uint8_t* data{nullptr}; 
 /// ID of frame.
 uint32_t frameId{0};
 /// ID of video source.
