@@ -43,12 +43,12 @@ enum class Fourcc
     /// NV21 pixel format.
     /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-yuv-planar.html#v4l2-pix-fmt-nv21
     NV21  = MAKE_FOURCC_CODE('N', 'V', '2', '1'),
-    /// YUV420 (YU12) - Planar pixel format.
+    /// YU12 (YUV420) - Planar pixel format.
     /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-yuv-planar.html#v4l2-pix-fmt-yuv420
-    YUV420 = MAKE_FOURCC_CODE('Y', 'U', '1', '2'),
-    /// YVY420 (YV12) - Planar pixel format.
+    YU12 = MAKE_FOURCC_CODE('Y', 'U', '1', '2'),
+    /// YV12 (YVU420) - Planar pixel format.
     /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-yuv-planar.html#v4l2-pix-fmt-yuv420
-    YVU420 = MAKE_FOURCC_CODE('Y', 'V', '1', '2'),
+    YV12 = MAKE_FOURCC_CODE('Y', 'V', '1', '2'),
     /// JPEG compressed format.
     /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-compressed.html#v4l2-pix-fmt-jpeg
     JPEG  = MAKE_FOURCC_CODE('J', 'P', 'E', 'G'),
@@ -109,7 +109,7 @@ public:
      * @brief Operator "=". Operator makes full copy of data.
      * @param src Source frame object.
      */
-    Frame& operator= (Frame& src);
+    Frame& operator= (const Frame& src);
 
     /**
      * @brief Operator "!=". Operator to compare two frame objects.
@@ -175,7 +175,7 @@ public:
 private:
 
     /// Frame data buffer.
-    std::shared_ptr<uint8_t[]> buffer{nullptr};
+    std::shared_ptr<uint8_t> buffer{nullptr};
 };
 }
 }

@@ -49,8 +49,8 @@ Frame::Frame(uint32_t _width,
         break;
     case Fourcc::NV12:
     case Fourcc::NV21:
-    case Fourcc::YUV420:
-    case Fourcc::YVU420:
+    case Fourcc::YU12:
+    case Fourcc::YV12:
         size = _width * (_height + _height / 2);
         break;
     case Fourcc::YUYV:
@@ -72,7 +72,7 @@ Frame::Frame(uint32_t _width,
     // Allocate memory.
     if (size > 0)
     {
-        buffer = std::shared_ptr<uint8_t[]>(new uint8_t[size]);
+        buffer = std::shared_ptr<uint8_t>(new uint8_t[size]);
         memset(data(), 0, size);
     }
 
@@ -113,8 +113,8 @@ Frame::Frame(Frame &src)
         break;
     case Fourcc::NV12:
     case Fourcc::NV21:
-    case Fourcc::YUV420:
-    case Fourcc::YVU420:
+    case Fourcc::YU12:
+    case Fourcc::YV12:
         size = width * (height + height / 2);
         break;
     case Fourcc::YUYV:
@@ -136,7 +136,7 @@ Frame::Frame(Frame &src)
     // Allocate memory.
     if (size > 0)
     {
-        buffer = std::shared_ptr<uint8_t[]>(new uint8_t[size]);
+        buffer = std::shared_ptr<uint8_t>(new uint8_t[size]);
         memset(data(), 0, size);
     }
 
@@ -161,7 +161,7 @@ Frame::~Frame()
 
 
 /// Copy operator.
-Frame &Frame::operator=(Frame &src)
+Frame &Frame::operator= (const Frame &src)
 {
     // Check yourself.
     if (this == &src)
@@ -177,7 +177,7 @@ Frame &Frame::operator=(Frame &src)
         fourcc == src.fourcc)
     {
         // Copy frame data.
-        memcpy(data(), src.data(), src.size);
+        memcpy(data(), src.buffer.get(), src.size);
         size = src.size;
     }
     else
@@ -197,8 +197,8 @@ Frame &Frame::operator=(Frame &src)
             break;
         case Fourcc::NV12:
         case Fourcc::NV21:
-        case Fourcc::YUV420:
-        case Fourcc::YVU420:
+        case Fourcc::YU12:
+        case Fourcc::YV12:
             size = width * (height + height / 2);
             break;
         case Fourcc::YUYV:
@@ -222,14 +222,14 @@ Frame &Frame::operator=(Frame &src)
         // Allocate memory.
         if (size > 0)
         {
-            buffer = std::shared_ptr<uint8_t[]>(new uint8_t[size]);
+            buffer = std::shared_ptr<uint8_t>(new uint8_t[size]);
             memset(data(), 0, size);
         }
 
         // Copy data.
-        if (src.size <= size && src.data() != nullptr)
+        if (src.size <= size && src.buffer.get() != nullptr)
         {
-            memcpy(data(), src.data(), src.size);
+            memcpy(data(), src.buffer.get(), src.size);
         }
 
         // Copy size.
@@ -429,8 +429,8 @@ bool Frame::deserialize(uint8_t* _data, int _size)
             break;
         case Fourcc::NV12:
         case Fourcc::NV21:
-        case Fourcc::YUV420:
-        case Fourcc::YVU420:
+        case Fourcc::YU12:
+        case Fourcc::YV12:
             size = width * (height + height / 2);
             break;
         case Fourcc::YUYV:
@@ -452,7 +452,7 @@ bool Frame::deserialize(uint8_t* _data, int _size)
         // Allocate memory.
         if (size > 0)
         {
-            buffer = std::shared_ptr<uint8_t[]>(new uint8_t[size]);
+            buffer = std::shared_ptr<uint8_t>(new uint8_t[size]);
             memset(data(), 0, size);
         }
     }
