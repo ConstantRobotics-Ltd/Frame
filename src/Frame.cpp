@@ -72,14 +72,15 @@ Frame::Frame(uint32_t _width,
     // Allocate memory.
     if (size > 0)
     {
-        buffer = std::shared_ptr<uint8_t>(new uint8_t[size]);
-        memset(data(), 0, size);
+        data = new uint8_t[size];
+        memset(data, 0, size);
+        m_isAllocated = true;
     }
 
     // Copy data.
     if (_size <= size && _data != nullptr)
     {
-        memcpy(data(), _data, _size);
+        memcpy(data, _data, _size);
         size = _size;
     }
 
@@ -136,14 +137,15 @@ Frame::Frame(Frame &src)
     // Allocate memory.
     if (size > 0)
     {
-        buffer = std::shared_ptr<uint8_t>(new uint8_t[size]);
-        memset(data(), 0, size);
+        data = new uint8_t[size];
+        memset(data, 0, size);
+        m_isAllocated = true;
     }
 
     // Copy data.
-    if (src.size <= size && src.data() != nullptr)
+    if (src.size <= size && src.data != nullptr)
     {
-        memcpy(data(), src.data(), src.size);
+        memcpy(data, src.data, src.size);
     }
 
     // Copy size.
@@ -155,7 +157,9 @@ Frame::Frame(Frame &src)
 /// Frame destructor.
 Frame::~Frame()
 {
-
+    // Release memory.
+    if (m_isAllocated)
+        delete[] data;
 }
 
 
@@ -177,7 +181,7 @@ Frame &Frame::operator= (const Frame &src)
         fourcc == src.fourcc)
     {
         // Copy frame data.
-        memcpy(data(), src.buffer.get(), src.size);
+        memcpy(data, src.data, src.size);
         size = src.size;
     }
     else
@@ -217,19 +221,20 @@ Frame &Frame::operator= (const Frame &src)
             return *this;
         }
 
-        buffer.reset();
+        if (m_isAllocated)
+            delete[] data;
 
         // Allocate memory.
         if (size > 0)
         {
-            buffer = std::shared_ptr<uint8_t>(new uint8_t[size]);
-            memset(data(), 0, size);
+            data = new uint8_t[size];
+            memset(data, 0, size);
         }
 
         // Copy data.
-        if (src.size <= size && src.buffer.get() != nullptr)
+        if (src.size <= size && src.data != nullptr)
         {
-            memcpy(data(), src.buffer.get(), src.size);
+            memcpy(data, src.data, src.size);
         }
 
         // Copy size.
@@ -259,7 +264,8 @@ void Frame::cloneTo(Frame& dst)
     dst.size = size;
 
     // Copy pointer to data.
-    dst.buffer = buffer;
+    dst.data = data;
+    dst.m_isAllocated = false;
 }
 
 
@@ -281,12 +287,12 @@ bool Frame::operator==(Frame &src)
         return false;
 
     // Compare frame data.
-    if (data() == src.data())
+    if (data == src.data)
         return true;
 
     if (size > 0 && src.size > 0)
         for (uint32_t i = 0; i < size; ++i)
-            if (data()[i] != src.data()[i])
+            if (data[i] != src.data[i])
                 return false;
 
     return true;
@@ -311,12 +317,12 @@ bool Frame::operator!=(Frame &src)
         return true;
 
     // Compare frame data.
-    if (data() == src.data())
+    if (data == src.data)
         return false;
 
     if (size > 0 && src.size > 0)
         for (uint32_t i = 0; i < size; ++i)
-            if (data()[i] != src.data()[i])
+            if (data[i] != src.data[i])
                 return true;
 
     return false;
@@ -327,7 +333,11 @@ bool Frame::operator!=(Frame &src)
 /// Release memory.
 void Frame::release()
 {
-    buffer.reset();
+    if (m_isAllocated)
+    {
+        delete[] data;
+        m_isAllocated = false;
+    }
 
     // Reset fields.
     width = 0;
@@ -367,7 +377,7 @@ void Frame::serialize(uint8_t* _data, int& _size)
 
     // Copy data.
     if (size > 0)
-        memcpy(&_data[pos], data(), size);
+        memcpy(&_data[pos], data, size);
     pos += size;
 
     _size = pos;
@@ -417,7 +427,8 @@ bool Frame::deserialize(uint8_t* _data, int _size)
     if (width != w || height != h || fourcc != (Fourcc)f)
     {
         // Release memory.
-        buffer.reset();
+        if (m_isAllocated)
+            delete[] data;
 
         // Calculate frame data size according to pixel format.
         switch (fourcc)
@@ -452,8 +463,8 @@ bool Frame::deserialize(uint8_t* _data, int _size)
         // Allocate memory.
         if (size > 0)
         {
-            buffer = std::shared_ptr<uint8_t>(new uint8_t[size]);
-            memset(data(), 0, size);
+            data = new uint8_t[size];
+            memset(data, 0, size);
         }
     }
 
@@ -467,18 +478,11 @@ bool Frame::deserialize(uint8_t* _data, int _size)
 
     // Copy data.
     if (size > 0)
-        memcpy(data(), &_data[pos], size);
+        memcpy(data, &_data[pos], size);
 
     return true;
 }
 
-
-
-/// Get pointer to frame data.
-uint8_t* Frame::data()
-{
-    return buffer.get();
-}
 
 
 

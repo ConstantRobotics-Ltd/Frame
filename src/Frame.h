@@ -152,12 +152,6 @@ public:
      */
     bool deserialize(uint8_t* data, int size);
 
-    /**
-     * @brief Get pointer to frame data.
-     * @return Pointer to frame data.
-     */
-    uint8_t* data();
-
 
     /// Frame width (pixels).
     uint32_t width{0};
@@ -171,11 +165,13 @@ public:
     uint32_t frameId{0};
     /// ID of video source.
     uint32_t sourceId{0};
+    /// Pointer to frame data.
+    uint8_t* data{nullptr};
 
 private:
 
-    /// Frame data buffer.
-    std::shared_ptr<uint8_t> buffer{nullptr};
+    /// Flag data allocation.
+    bool m_isAllocated{false};
 };
 }
 }
