@@ -6,17 +6,23 @@
 
 # Table of contents
 
-- [OVERVIEW](#overview)
-- [API DESCRIPTION](#api-description)
-  - [CONSTRUCTOR AND DESTRUCTOR](#constructor-and-destructor)
-  - [getVersion(..)](#getversion)
-  - [cloneTo(...)](#cloneto)
-  - [release(..)](#release)
-  - [serialize(...)](#serialize)
-  - [deserialize(...)](#deserialize)
-  - [operator ==](#operator-==)
-  - [operator !=](#operator-!=)
-  - [public members](#public-members)
+- [Overview](#Overview)
+- [Versions](#Versions)
+- [Supported pixel formats](#Supported-pixel-formats)
+- [Frame class description](#Frame-class-description)
+  - [Frame class declaration](#Frame-class-declaration)
+  - [Default constructor](#Default-constructor)
+  - [Constructor with parameters](#Constructor-with-parameters)
+  - [Copy-constructor](#Copy-constructor)
+  - [getVersion method](#getVersion-method)
+  - [Copy operator =](#Copy-operator-=)
+  - [cloneTo method](#cloneTo-method)
+  - [Compare operator ==](#Compare-operator-==)
+  - [Compare operator !=](#Compare-operator-!=)
+  - [release method](#release-method)
+  - [serialize method](#serialize-method)
+  - [deserialize method](#deserialize-method)
+  - [Frame class public members](#Frame-class-public-members)
   
 
 # Overview
@@ -207,7 +213,6 @@ public:
      */
     bool deserialize(uint8_t* data, int size);
 
-
     /// Frame width (pixels).
     uint32_t width{0};
     /// Frame height (pixels).
@@ -312,7 +317,7 @@ std::cout << "Frame class version: " << cr::video::Frame::getVersion() << std::e
 
 ## Copy operator =
 
-Copy operator **"="** intended to full copy of frame data. Operator copies frame data and frame atributes. Operator declaration:
+Copy operator **"="** intended to full copy of frame data. Operator copies frame data and frame attributes. Operator declaration:
 
 ```cpp
 Frame& operator= (const Frame& src);
@@ -330,7 +335,7 @@ cr::video::Frame image2 = image1;
 
 ## cloneTo method
 
-cloneTo(...) method designed to clone frame object withou copy of data. Method copies frame atributes and initialize pointer to frame data without copy of data. Method declaration:
+**cloneTo(...)** method designed to clone frame object without copy of data. Method copies frame attributes and initialize pointer to frame data without copy of data. Method declaration:
 
 ```cpp
 void cloneTo(Frame& dst);
@@ -338,7 +343,7 @@ void cloneTo(Frame& dst);
 
 | Parameter | Description                                                  |
 | --------- | ------------------------------------------------------------ |
-| dst       | Frame object for initialization. Method initialize only frame atributes and copies ponter to frame data. |
+| dst       | Frame object for initialization. Method initialize only frame attributes and copies pointer to frame data. |
 
 Example:
 
@@ -353,13 +358,13 @@ image1.cloneTo(image2);
 
 ## Compare operator ==
 
-Compare operator **"=="** compares data atributes and frame data of to Frame objects. Operator declaration:
+Compare operator **"=="** compares data attributes and frame data of to Frame objects. Operator declaration:
 
 ```cpp
 bool operator== (Frame& src);
 ```
 
-**Returns:** TRUE if all atributes and data of two Frame objects are identical (or when comparing an object to itself) or FALSE if not.
+**Returns:** TRUE if all attributes and data of two Frame objects are identical (or when comparing an object to itself) or FALSE if not.
 
 Example:
 
@@ -384,13 +389,13 @@ else
 
 ## Compare operator !=
 
-Compare operator **"!="** compares data atributes and frame data of to Frame objects. Operator declaration:
+Compare operator **"!="** compares data attributes and frame data of to Frame objects. Operator declaration:
 
 ```cpp
 bool operator!= (Frame& src);
 ```
 
-**Returns:** TRUE if all atributes and data of two Frame objects are identical (or when comparing an object to itself) or FALSE if not.
+**Returns:** TRUE if all attributes and data of two Frame objects are identical (or when comparing an object to itself) or FALSE if not.
 
 Example:
 
@@ -412,12 +417,12 @@ image1.data[0] = rand() % 255;
 if (image1 != image2)
     std::cout << "Not identical" << std::endl;
 else
-    std::cout << "Indentical"
+    std::cout << "Indentical" << std::endl;
 ```
 
 ## release method
 
-**release()** method intended to release allocated memory and reset frame atributes. Method declaration:
+**release()** method intended to release allocated memory and reset frame attributes. Method declaration:
 
 ```cpp
 void release();
@@ -435,11 +440,152 @@ image1.release();
 
 ## serialize method
 
-**serialize()** method intended to serialize Frame object with data. Sometimes the user needs to serialise an object in order to transfer or write it somewhere. Method declaration:
+**serialize(...)** method intended for serialization of Frame object with data. Sometimes the user needs to serialize an object in order to transfer or write it somewhere. Method declaration:
 
 ```cpp
 void serialize(uint8_t* data, int& size);
 ```
+
+| Parameter | Description              |
+| --------- | ------------------------ |
+| data      | Pointer to data buffer.  |
+| size      | Size of serialized data. |
+
+Example:
+
+```cpp
+// Init frames.
+Frame srcFrame(640, 480, Fourcc::BGR24);
+
+// Fill source frame.
+for (uint32_t i = 0; i < srcFrame.size; ++i)
+     srcFrame.data[i] = (uint8_t)(rand() % 255);
+
+// Serialize data.
+uint8_t* data = new uint8_t[1920 * 1080 * 4];
+int size = 0;
+srcFrame.serialize(data, size);
+```
+
+## deserialize method
+
+**deserialize(...)** method intended for deserialization of Frame object. Method declaration:
+
+```cpp
+bool deserialize(uint8_t* data, int size);
+```
+
+| Parameter | Description              |
+| --------- | ------------------------ |
+| data      | Pointer to data buffer.  |
+| size      | Size of serialized data. |
+
+**Returns:** TRUE of the data deserialized or FALSE if not.
+
+Example:
+
+```cpp
+// Init frames.
+Frame srcFrame(640, 480, Fourcc::BGR24);
+Frame dstFrame(1280, 720, Fourcc::YUV24);
+
+// Fill source frame.
+for (uint32_t i = 0; i < srcFrame.size; ++i)
+     srcFrame.data[i] = (uint8_t)(rand() % 255);
+
+// Serialize data.
+uint8_t* data = new uint8_t[1920 * 1080 * 4];
+int size = 0;
+srcFrame.serialize(data, size);
+
+// Deserialize data.
+if (!dstFrame.deserialize(data, size))
+{
+    std::cout << "Data not deserialized" << std::endl;
+    return false;
+}
+
+// Compare atributes.
+if (srcFrame.size != dstFrame.size)
+{
+    std::cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << std::endl;
+    return false;
+}
+if (srcFrame.width != dstFrame.width)
+{
+    std::cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << std::endl;
+    return false;
+}
+if (srcFrame.height != dstFrame.height)
+{
+    std::cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << std::endl;
+    return false;
+}
+if (srcFrame.fourcc != dstFrame.fourcc)
+{
+    std::cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << std::endl;
+    return false;
+}
+if (srcFrame.sourceId != dstFrame.sourceId)
+{
+    cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << std::endl;
+    return false;
+}
+if (srcFrame.frameId != dstFrame.frameId)
+{
+    std::cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << std::endl;
+    return false;
+}
+
+// Compare frame data.
+for (uint32_t i = 0; i < srcFrame.size; ++i)
+{
+    if (srcFrame.data[i] != dstFrame.data[i])
+    {
+        std::cout << "[" << __LINE__ << "] " << __FILE__ << " : ERROR" << std::endl;
+        return false;
+    }
+}
+```
+
+## Frame class public members
+
+Frame class public members declaration:
+
+```cpp
+/// Frame width (pixels).
+uint32_t width{0};
+/// Frame height (pixels).
+uint32_t height{0};
+/// FOURCC code of data format.
+Fourcc fourcc{Fourcc::YUV24};
+/// Frame data size (bytes).
+uint32_t size{0};
+/// ID of frame.
+uint32_t frameId{0};
+/// ID of video source.
+uint32_t sourceId{0};
+/// Pointer to frame data.
+uint8_t* data{nullptr};
+```
+
+**Table 3** - Frame class public members.
+
+| Field    | Description                                                  |
+| -------- | ------------------------------------------------------------ |
+| width    | Frame width.                                                 |
+| height   | Frame height.                                                |
+| fourcc   | Fourcc code according to **Fourcc** enum declared in **Frame.h** file. |
+| size     | Size of frame data.                                          |
+| frameId  | Frame ID. User defines this filed.                           |
+| sourceId | Source ID. User defines this field.                          |
+| data     | Pointer to frame data.                                       |
+
+
+
+
+
+
 
 
 
