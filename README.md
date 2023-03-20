@@ -582,10 +582,3 @@ uint8_t* data{nullptr};
 | data     | Pointer to frame data.                                       |
 
 
-
-
-
-
-
-
-
