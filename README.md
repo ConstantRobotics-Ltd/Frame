@@ -1,6 +1,6 @@
 ![frame_logo](_static/frame_logo.png)
 
-**v5.0.0**
+**v5.0.1**
 
 ------
 
@@ -40,6 +40,7 @@ Frame class is basic class for other projects. Main file **Frame.h** contains de
 | 3.0.0   | 20.12.2020   | Added NV12 pixel format.                                     |
 | 4.0.0   | 20.01.2023   | - Interface changed. <br />- Added new pixel formats.<br />- Added shared_ptr for frame data.<br />- Added new methods for copy and compare data.<br />- Added new method for sereliazation and deserialization frame data.<br />- Tests changed. |
 | 5.0.0   | 19.03.2023   | - shared_ptr replaced by normal pointer.<br />- Documentation updated. |
+| 5.0.1   | 29.05.2023   | - Pixel format description (NV12 and NV21) mistake fixed.    |
 
 # Supported pixel formats
 
@@ -580,5 +581,4 @@ uint8_t* data{nullptr};
 | frameId  | Frame ID. User defines this filed.                           |
 | sourceId | Source ID. User defines this field.                          |
 | data     | Pointer to frame data.                                       |
-
 
