@@ -1,6 +1,6 @@
 ![frame_logo](_static/frame_logo.png)
 
-**v5.0.1**
+**v5.0.3**
 
 ------
 
@@ -23,7 +23,8 @@
   - [serialize method](#serialize-method)
   - [deserialize method](#deserialize-method)
   - [Frame class public members](#Frame-class-public-members)
-  
+
+- [Build and connect to your project](#Build-and-connect-to-your-project)
 
 # Overview
 
@@ -36,11 +37,13 @@ Frame class is basic class for other projects. Main file **Frame.h** contains de
 | Version | Release date | What's new                                                   |
 | ------- | ------------ | ------------------------------------------------------------ |
 | 1.0.0   | 08.09.2020   | First Frame class version in VideoDataStructures repository. |
-| 2.0.0   | 19.11.2020   | Trasformation matrix added.                                  |
+| 2.0.0   | 19.11.2020   | Transformation matrix added.                                 |
 | 3.0.0   | 20.12.2020   | Added NV12 pixel format.                                     |
 | 4.0.0   | 20.01.2023   | - Interface changed. <br />- Added new pixel formats.<br />- Added shared_ptr for frame data.<br />- Added new methods for copy and compare data.<br />- Added new method for sereliazation and deserialization frame data.<br />- Tests changed. |
 | 5.0.0   | 19.03.2023   | - shared_ptr replaced by normal pointer.<br />- Documentation updated. |
 | 5.0.1   | 29.05.2023   | - Pixel format description (NV12 and NV21) mistake fixed.    |
+| 5.0.2   | 22.06.2023   | - Added LICENSE.<br />- Repository made public.              |
+| 5.0.3   | 22.06.2023   | - Added build guide.                                         |
 
 # Supported pixel formats
 
@@ -582,3 +585,110 @@ uint8_t* data{nullptr};
 | sourceId | Source ID. User defines this field.                          |
 | data     | Pointer to frame data.                                       |
 
+# Build and connect to your project
+
+Typical commands to build **Frame** library:
+
+```bash
+git clone https://github.com/ConstantRobotics-Ltd/Frame.git
+cd Frame
+mkdir build
+cd build
+cmake ..
+make
+```
+
+If you want connect Frame library to your CMake project as source code you can make follow. For example, if your repository has structure:
+
+```bash
+CMakeLists.txt
+src
+	CMakeList.txt
+    yourLib.h
+    yourLib.cpp
+```
+
+You can add repository **Frame** as submodule by command:
+
+```bash
+cd <your respository folder>
+git submodule add https://github.com/ConstantRobotics-Ltd/Frame.git 3rdparty/Frame
+```
+
+In you repository folder will be created folder **3rdparty/Frame** which contains files of **Frame** repository. New structure of your repository:
+
+```bash
+CMakeLists.txt
+src
+	CMakeList.txt
+    yourLib.h
+    yourLib.cpp
+3rdparty
+	Frame
+```
+
+Create CMakeLists.txt file in **3rdparty** folder. CMakeLists.txt should contain:
+
+```cmake
+cmake_minimum_required(VERSION 3.13)
+
+################################################################################
+## 3RD-PARTY
+## dependencies for the project
+################################################################################
+project(3rdparty LANGUAGES CXX)
+
+################################################################################
+## SETTINGS
+## basic 3rd-party settings before use
+################################################################################
+# To inherit the top-level architecture when the project is used as a submodule.
+SET(PARENT ${PARENT}_YOUR_PROJECT_3RDPARTY)
+# Disable self-overwriting of parameters inside included subdirectories.
+SET(${PARENT}_SUBMODULE_CACHE_OVERWRITE OFF CACHE BOOL "" FORCE)
+
+################################################################################
+## CONFIGURATION
+## 3rd-party submodules configuration
+################################################################################
+SET(${PARENT}_SUBMODULE_FRAME                           ON  CACHE BOOL "" FORCE)
+if (${PARENT}_SUBMODULE_FRAME)
+    SET(${PARENT}_FRAME                                 ON  CACHE BOOL "" FORCE)
+    SET(${PARENT}_FRAME_TEST                            OFF CACHE BOOL "" FORCE)
+endif()
+
+################################################################################
+## INCLUDING SUBDIRECTORIES
+## Adding subdirectories according to the 3rd-party configuration
+################################################################################
+if (${PARENT}_SUBMODULE_FRAME)
+    add_subdirectory(Frame)
+endif()
+```
+
+File **3rdparty/CMakeLists.txt** adds folder **Frame** to your project and excludes test application (Frame class tests) from compiling. Your repository new structure will be:
+
+```bash
+CMakeLists.txt
+src
+	CMakeList.txt
+    yourLib.h
+    yourLib.cpp
+3rdparty
+	CMakeLists.txt
+	Frame
+```
+
+Next you need include folder 3rdparty in main **CMakeLists.txt** file of your repository. Add string at the end of your main **CMakeLists.txt**:
+
+```cmake
+add_subdirectory(3rdparty)
+```
+
+Next you have to include Frame library in your **src/CMakeLists.txt** file:
+
+```cmake
+target_link_libraries(${PROJECT_NAME} Frame)
+```
+
+Done!
