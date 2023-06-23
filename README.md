@@ -1,5 +1,7 @@
 ![frame_logo](_static/frame_logo.png)
 
+# **Frame C++ class**
+
 **v5.0.3**
 
 ------
@@ -603,7 +605,7 @@ If you want connect Frame library to your CMake project as source code you can m
 ```bash
 CMakeLists.txt
 src
-	CMakeList.txt
+    CMakeList.txt
     yourLib.h
     yourLib.cpp
 ```
@@ -620,11 +622,11 @@ In you repository folder will be created folder **3rdparty/Frame** which contain
 ```bash
 CMakeLists.txt
 src
-	CMakeList.txt
+    CMakeList.txt
     yourLib.h
     yourLib.cpp
 3rdparty
-	Frame
+    Frame
 ```
 
 Create CMakeLists.txt file in **3rdparty** folder. CMakeLists.txt should contain:
@@ -671,12 +673,12 @@ File **3rdparty/CMakeLists.txt** adds folder **Frame** to your project and exclu
 ```bash
 CMakeLists.txt
 src
-	CMakeList.txt
+    CMakeList.txt
     yourLib.h
     yourLib.cpp
 3rdparty
-	CMakeLists.txt
-	Frame
+    CMakeLists.txt
+    Frame
 ```
 
 Next you need include folder 3rdparty in main **CMakeLists.txt** file of your repository. Add string at the end of your main **CMakeLists.txt**:
