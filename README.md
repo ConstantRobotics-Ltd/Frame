@@ -2,9 +2,11 @@
 
 # **Frame C++ class**
 
-**v5.0.3**
+**v5.0.4**
 
 ------
+
+
 
 # Table of contents
 
@@ -28,9 +30,13 @@
 
 - [Build and connect to your project](#Build-and-connect-to-your-project)
 
+
+
 # Overview
 
 Frame class is basic class for other projects. Main file **Frame.h** contains declaration of **Frame** class and **Fourcc** enum which describes pixel formats supported by **Frame** class.
+
+
 
 # Versions
 
@@ -46,6 +52,9 @@ Frame class is basic class for other projects. Main file **Frame.h** contains de
 | 5.0.1   | 29.05.2023   | - Pixel format description (NV12 and NV21) mistake fixed.    |
 | 5.0.2   | 22.06.2023   | - Added LICENSE.<br />- Repository made public.              |
 | 5.0.3   | 22.06.2023   | - Added build guide.                                         |
+| 5.0.4   | 06.07.2023   | - Documentation updated.                                     |
+
+
 
 # Supported pixel formats
 
@@ -117,6 +126,8 @@ enum class Fourcc
 | ![yuyv](_static/yuyv_pixel_format.png)**YUYV** | ![uyvy](_static/uyvy_pixel_format.png)**UYVY** |
 | ![nv12](_static/nv12_pixel_format.png)**NV12** | ![nv21](_static/nv21_pixel_format.png)**NV21** |
 | ![yu12](_static/yu12_pixel_format.png)**YU12** | ![yv12](_static/yv12_pixel_format.png)**YV12** |
+
+
 
 # Frame class description
 
@@ -238,6 +249,8 @@ public:
 }
 ```
 
+
+
 ## Default constructor
 
 Default Frame class constructor doesn't do anything. It doesn't allocate memory. Constructor declaration:
@@ -245,6 +258,8 @@ Default Frame class constructor doesn't do anything. It doesn't allocate memory.
 ```cpp
 Frame();
 ```
+
+
 
 ## Constructor with parameters
 
@@ -286,6 +301,8 @@ image4.fourcc = cr::video::Fourcc::BGR24;
 cr::video::Frame* image5 = new cr::video::Frame(640, 480, cr::video::Fourcc::YUV24);
 ```
 
+
+
 ## Copy-constructor
 
 Copy constructor copy frame data from other Frame class instance. Constructor declaration:
@@ -307,6 +324,8 @@ cr::video::Frame image2(image1);
 cr::video::Frame image3 = cr::video::Frame(image1);
 ```
 
+
+
 ## getVersion method
 
 **getVersion()** method return string of current version of **Frame** class. Method declaration:
@@ -320,6 +339,8 @@ Method can be used without **Frame** class instance. Example:
 ```cpp
 std::cout << "Frame class version: " << cr::video::Frame::getVersion() << std::endl;
 ```
+
+
 
 ## Copy operator =
 
@@ -338,6 +359,8 @@ cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
 // Make copy.
 cr::video::Frame image2 = image1;
 ```
+
+
 
 ## cloneTo method
 
@@ -361,6 +384,8 @@ cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
 cr::video::Frame image2;
 image1.cloneTo(image2);
 ```
+
+
 
 ## Compare operator ==
 
@@ -392,6 +417,8 @@ if (image1 == image2)
 else
     std::cout << "Not identical" << std::endl;
 ```
+
+
 
 ## Compare operator !=
 
@@ -426,6 +453,8 @@ else
     std::cout << "Indentical" << std::endl;
 ```
 
+
+
 ## release method
 
 **release()** method intended to release allocated memory and reset frame attributes. Method declaration:
@@ -443,6 +472,8 @@ cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
 // Release Frame object.
 image1.release();
 ```
+
+
 
 ## serialize method
 
@@ -472,6 +503,8 @@ uint8_t* data = new uint8_t[1920 * 1080 * 4];
 int size = 0;
 srcFrame.serialize(data, size);
 ```
+
+
 
 ## deserialize method
 
@@ -554,6 +587,8 @@ for (uint32_t i = 0; i < srcFrame.size; ++i)
 }
 ```
 
+
+
 ## Frame class public members
 
 Frame class public members declaration:
@@ -586,6 +621,8 @@ uint8_t* data{nullptr};
 | frameId  | Frame ID. User defines this filed.                           |
 | sourceId | Source ID. User defines this field.                          |
 | data     | Pointer to frame data.                                       |
+
+
 
 # Build and connect to your project
 
