@@ -450,7 +450,7 @@ bool serializationTest()
 {
     // Init frames.
     Frame srcFrame(640, 480, Fourcc::BGR24);
-    Frame dstFrame(1280, 720, Fourcc::YUV24);
+    Frame dstFrame;
 
     // Fill source frame.
     for (uint32_t i = 0; i < srcFrame.size; ++i)

@@ -457,6 +457,7 @@ bool Frame::deserialize(uint8_t* _data, int _size)
         if (size > 0)
         {
             data = new uint8_t[size];
+            m_isAllocated = true;
         }
     }
 
@@ -470,7 +471,7 @@ bool Frame::deserialize(uint8_t* _data, int _size)
 
     // Copy data.
     if (size > 0)
-        memcpy(data, &_data[pos], _size);
+        memcpy(data, &_data[pos], size);
 
     return true;
 }

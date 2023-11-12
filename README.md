@@ -1,10 +1,8 @@
-![frame_logo](_static/frame_logo.png)
+![frame_logo](_static/frame_web_logo.png)
 
 # **Frame C++ class**
 
-**v5.0.4**
-
-------
+**v5.0.5**
 
 
 
@@ -53,6 +51,7 @@ Frame class is basic class for other projects. Main file **Frame.h** contains de
 | 5.0.2   | 22.06.2023   | - Added LICENSE.<br />- Repository made public.              |
 | 5.0.3   | 22.06.2023   | - Added build guide.                                         |
 | 5.0.4   | 06.07.2023   | - Documentation updated.                                     |
+| 5.0.5   | 12.11.2023   | - Fixed errors serialization/deserialization functions.      |
 
 
 
