@@ -9,7 +9,6 @@ using namespace cr::video;
 
 
 
-/// Get class version.
 string Frame::getVersion()
 {
     return FRAME_VERSION;
@@ -17,7 +16,6 @@ string Frame::getVersion()
 
 
 
-/// Default class constructor.
 Frame::Frame()
 {
 
@@ -25,7 +23,6 @@ Frame::Frame()
 
 
 
-/// Class constructor with parameters.
 Frame::Frame(uint32_t _width,
              uint32_t _height,
              Fourcc _fourcc,
@@ -94,7 +91,6 @@ Frame::Frame(uint32_t _width,
 
 
 
-/// Copy-constructor.
 Frame::Frame(Frame &src)
 {
     // Copy fields.
@@ -154,7 +150,6 @@ Frame::Frame(Frame &src)
 
 
 
-/// Frame destructor.
 Frame::~Frame()
 {
     // Release memory.
@@ -164,7 +159,6 @@ Frame::~Frame()
 
 
 
-/// Copy operator.
 Frame &Frame::operator= (const Frame &src)
 {
     // Check yourself.
@@ -232,7 +226,7 @@ Frame &Frame::operator= (const Frame &src)
         }
 
         // Copy data.
-        if (src.size <= size && src.data != nullptr)
+        if (src.size <= size && src.data != nullptr && size > 0)
         {
             memcpy(data, src.data, src.size);
         }
@@ -246,7 +240,6 @@ Frame &Frame::operator= (const Frame &src)
 
 
 
-/// Clone frame to another.
 void Frame::cloneTo(Frame& dst)
 {
     // Check yourself.
@@ -270,7 +263,6 @@ void Frame::cloneTo(Frame& dst)
 
 
 
-/// Compare operator.
 bool Frame::operator==(Frame &src)
 {
     // Check yourself.
@@ -300,7 +292,6 @@ bool Frame::operator==(Frame &src)
 
 
 
-/// Compare operator.
 bool Frame::operator!=(Frame &src)
 {
     // Check yourself.
@@ -330,7 +321,6 @@ bool Frame::operator!=(Frame &src)
 
 
 
-/// Release memory.
 void Frame::release()
 {
     if (m_isAllocated)
@@ -350,7 +340,6 @@ void Frame::release()
 
 
 
-/// Serialize frame data.
 void Frame::serialize(uint8_t* _data, int& _size)
 {
     // Copy Frame class version.
@@ -385,11 +374,10 @@ void Frame::serialize(uint8_t* _data, int& _size)
 
 
 
-/// Deserialize data data to frame object.
 bool Frame::deserialize(uint8_t* _data, int _size)
 {
     // Check params.
-    if (_data == nullptr || _size < 62)
+    if (_data == nullptr || _size < 26)
         return false;
 
     // Check frame class version.
@@ -426,12 +414,17 @@ bool Frame::deserialize(uint8_t* _data, int _size)
     // Check FOURCC.
     if (width != w || height != h || fourcc != (Fourcc)f)
     {
+        // Update params.
+        width = w;
+        height = h;
+        fourcc = (Fourcc)f;
+
         // Release memory.
         if (m_isAllocated)
             delete[] data;
 
         // Calculate frame data size according to pixel format.
-        switch (fourcc)
+        switch ((Fourcc)f)
         {
         case Fourcc::BGR24:
         case Fourcc::RGB24:
@@ -464,7 +457,6 @@ bool Frame::deserialize(uint8_t* _data, int _size)
         if (size > 0)
         {
             data = new uint8_t[size];
-            memset(data, 0, size);
         }
     }
 
@@ -478,7 +470,7 @@ bool Frame::deserialize(uint8_t* _data, int _size)
 
     // Copy data.
     if (size > 0)
-        memcpy(data, &_data[pos], size);
+        memcpy(data, &_data[pos], _size);
 
     return true;
 }
