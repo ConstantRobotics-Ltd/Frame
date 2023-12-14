@@ -157,10 +157,7 @@ Frame::~Frame()
 {
     // Release memory.
     if (m_isAllocated)
-    {
         delete[] data;
-        m_isAllocated = false;
-    }
 }
 
 
