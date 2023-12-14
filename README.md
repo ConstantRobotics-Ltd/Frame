@@ -2,7 +2,7 @@
 
 # **Frame C++ class**
 
-**v5.0.5**
+**v5.0.6**
 
 
 
@@ -52,6 +52,7 @@ Frame class is basic class for other projects. Main file **Frame.h** contains de
 | 5.0.3   | 22.06.2023   | - Added build guide.                                         |
 | 5.0.4   | 06.07.2023   | - Documentation updated.                                     |
 | 5.0.5   | 12.11.2023   | - Fixed errors serialization/deserialization functions.      |
+| 5.0.6   | 14.12.2023   | - Memory leakage from "=" operator fixed.                    |
 
 
 

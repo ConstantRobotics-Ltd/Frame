@@ -63,7 +63,7 @@ int main(void)
     else
         cout << "OK" << endl << endl;
 
-    return -1;
+    return 1;
 }
 
 
@@ -512,33 +512,3 @@ bool serializationTest()
 
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

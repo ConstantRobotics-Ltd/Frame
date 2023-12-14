@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.13)
 ## LIBRARY-PROJECT
 ## name and version
 ################################################################################
-project(Frame VERSION 5.0.4 LANGUAGES CXX)
+project(Frame VERSION 5.0.6 LANGUAGES CXX)
 
 
 
