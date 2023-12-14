@@ -25,50 +25,45 @@ bool compareTest();
 /// Serialization test.
 bool serializationTest();
 
-/// test memory leakage
-void testMemory();
-
 
 
 /// Entry point.
 int main(void)
 {
-    //cout << "#######################################" << endl;
-    //cout << "Frame vlass v" << Frame::getVersion() << " test"  << endl;
-    //cout << "#######################################" << endl << endl;
-//
-    //cout << "Constructor test:" << endl;
-    //if (!constructorTest())
-    //    cout << "ERROR" << endl << endl;
-    //else
-    //    cout << "OK" << endl << endl;
-//
-    //cout << "Copy test:" << endl;
-    //if (!copyTest())
-    //    cout << "ERROR" << endl << endl;
-    //else
-    //    cout << "OK" << endl << endl;
-//
-    //cout << "Clone test:" << endl;
-    //if (!cloneTest())
-    //    cout << "ERROR" << endl << endl;
-    //else
-    //    cout << "OK" << endl << endl;
-//
-    //cout << "Compare test:" << endl;
-    //if (!compareTest())
-    //    cout << "ERROR" << endl << endl;
-    //else
-    //    cout << "OK" << endl << endl;
-//
-    //cout << "Serialization test:" << endl;
-    //if (!serializationTest())
-    //    cout << "ERROR" << endl << endl;
-    //else
-    //    cout << "OK" << endl << endl;
-//
-    //return -1;
-    testMemory();
+    cout << "#######################################" << endl;
+    cout << "Frame vlass v" << Frame::getVersion() << " test"  << endl;
+    cout << "#######################################" << endl << endl;
+
+    cout << "Constructor test:" << endl;
+    if (!constructorTest())
+        cout << "ERROR" << endl << endl;
+    else
+        cout << "OK" << endl << endl;
+
+    cout << "Copy test:" << endl;
+    if (!copyTest())
+        cout << "ERROR" << endl << endl;
+    else
+        cout << "OK" << endl << endl;
+
+    cout << "Clone test:" << endl;
+    if (!cloneTest())
+        cout << "ERROR" << endl << endl;
+    else
+        cout << "OK" << endl << endl;
+
+    cout << "Compare test:" << endl;
+    if (!compareTest())
+        cout << "ERROR" << endl << endl;
+    else
+        cout << "OK" << endl << endl;
+
+    cout << "Serialization test:" << endl;
+    if (!serializationTest())
+        cout << "ERROR" << endl << endl;
+    else
+        cout << "OK" << endl << endl;
+
     return 1;
 }
 
@@ -518,63 +513,3 @@ bool serializationTest()
 
     return true;
 }
-
-void testMemory()
-{
-    // Test of dynamic allocation
-        //// List of frames
-        Frame *frameList[10000];
-        //// create new frame in loop
-        for(int i = 0; i < 10000; ++i)
-            frameList[i] = new Frame(640, 480, Fourcc::YUV24);
-        for(int i = 0; i < 10000; ++i)
-            delete frameList[i];
-    std::cout << "Basic memory allocation is done" << std::endl;
-
-    // test of move constructor
-    
-    Frame frameSource = Frame(640, 480, Fourcc::YUV24);
-    
-    for(int i = 0; i < 10000; ++i)
-        frameList[i] = new Frame(frameSource);
-    for(int i = 0; i < 10000; ++i)
-        delete frameList[i];
-    
-
-    //for(int i = 0; i < 50000; ++i)
-    //{
-    //    Frame frameSource2 = Frame(640, 480, Fourcc::YUV24);
-    //    frameSource2.release();
-    //    frameSource2 = Frame(1280, 720, Fourcc::BGR24);
-    //}
-
-    while(true);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
