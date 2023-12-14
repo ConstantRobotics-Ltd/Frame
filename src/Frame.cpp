@@ -93,6 +93,9 @@ Frame::Frame(uint32_t _width,
 
 Frame::Frame(Frame &src)
 {
+    // free memory if allocated before.
+    release();
+
     // Copy fields.
     width = src.width;
     height = src.height;
@@ -154,7 +157,10 @@ Frame::~Frame()
 {
     // Release memory.
     if (m_isAllocated)
+    {
         delete[] data;
+        m_isAllocated = false;
+    }
 }
 
 
@@ -223,6 +229,7 @@ Frame &Frame::operator= (const Frame &src)
         {
             data = new uint8_t[size];
             memset(data, 0, size);
+            m_isAllocated = true;
         }
 
         // Copy data.
