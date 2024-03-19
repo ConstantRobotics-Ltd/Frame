@@ -2,37 +2,38 @@
 
 # **Frame C++ class**
 
-**v5.0.6**
+**v5.0.7**
 
 
 
 # Table of contents
 
-- [Overview](#Overview)
-- [Versions](#Versions)
-- [Supported pixel formats](#Supported-pixel-formats)
-- [Frame class description](#Frame-class-description)
-  - [Frame class declaration](#Frame-class-declaration)
-  - [Default constructor](#Default-constructor)
-  - [Constructor with parameters](#Constructor-with-parameters)
-  - [Copy-constructor](#Copy-constructor)
-  - [getVersion method](#getVersion-method)
-  - [Copy operator =](#Copy-operator-=)
-  - [cloneTo method](#cloneTo-method)
-  - [Compare operator ==](#Compare-operator-==)
-  - [Compare operator !=](#Compare-operator-!=)
+- [Overview](#overview)
+- [Versions](#versions)
+- [Library files](#library-files)
+- [Supported pixel formats](#supported-pixel-formats)
+- [Frame class description](#frame-class-description)
+  - [Frame class declaration](#frame-class-declaration)
+  - [Default constructor](#default-constructor)
+  - [Constructor with parameters](#constructor-with-parameters)
+  - [Copy-constructor](#copy-constructor)
+  - [getVersion method](#getversion-method)
+  - [Copy operator =](#copy-operator-=)
+  - [cloneTo method](#cloneto-method)
+  - [Compare operator ==](#compare-operator-==)
+  - [Compare operator !=](#compare-operator-!=)
   - [release method](#release-method)
   - [serialize method](#serialize-method)
   - [deserialize method](#deserialize-method)
-  - [Frame class public members](#Frame-class-public-members)
+  - [Frame class public members](#frame-class-public-members)
 
-- [Build and connect to your project](#Build-and-connect-to-your-project)
+- [Build and connect to your project](#build-and-connect-to-your-project)
 
 
 
 # Overview
 
-Frame class is basic class for other projects. Main file **Frame.h** contains declaration of **Frame** class and **Fourcc** enum which describes pixel formats supported by **Frame** class.
+Frame class is basic class for other projects which describes video frame. Main file **Frame.h** contains declaration of **Frame** class and **Fourcc** enum which describes pixel formats supported by **Frame** class. The library doesn't have any third party dependencies. It uses C++17 standard. The library is licensed under the **Apache 2.0** license.
 
 
 
@@ -45,7 +46,7 @@ Frame class is basic class for other projects. Main file **Frame.h** contains de
 | 1.0.0   | 08.09.2020   | First Frame class version in VideoDataStructures repository. |
 | 2.0.0   | 19.11.2020   | Transformation matrix added.                                 |
 | 3.0.0   | 20.12.2020   | Added NV12 pixel format.                                     |
-| 4.0.0   | 20.01.2023   | - Interface changed. <br />- Added new pixel formats.<br />- Added shared_ptr for frame data.<br />- Added new methods for copy and compare data.<br />- Added new method for sereliazation and deserialization frame data.<br />- Tests changed. |
+| 4.0.0   | 20.01.2023   | - Interface changed. <br />- Added new pixel formats.<br />- Added shared_ptr for frame data.<br />- Added new methods for copy and compare data.<br />- Added new method for serialization and deserialization frame data.<br />- Tests changed. |
 | 5.0.0   | 19.03.2023   | - shared_ptr replaced by normal pointer.<br />- Documentation updated. |
 | 5.0.1   | 29.05.2023   | - Pixel format description (NV12 and NV21) mistake fixed.    |
 | 5.0.2   | 22.06.2023   | - Added LICENSE.<br />- Repository made public.              |
@@ -53,19 +54,34 @@ Frame class is basic class for other projects. Main file **Frame.h** contains de
 | 5.0.4   | 06.07.2023   | - Documentation updated.                                     |
 | 5.0.5   | 12.11.2023   | - Fixed errors serialization/deserialization functions.      |
 | 5.0.6   | 14.12.2023   | - Memory leakage from "=" operator fixed.                    |
+| 5.0.7   | 19.03.2024   | - Type of data fields changes from uint32_t to int.          |
+
+
+
+# Library files
+
+The library supplied by source code only. The user would be given a set of files in the form of a CMake project (repository). The repository structure is shown below:
+
+```xml
+CMakeLists.txt ---------------- Main CMake file of the library.
+src --------------------------- Folder with library source code.
+    CMakeLists.txt ------------ CMake file.
+    Frame.h ------------------- Main library header file.
+    FrameVersion.h ------------ Header file with library version.
+    FrameVersion.h.in --------- File for CMake to generate version header.
+    Frame.cpp ----------------- C++ implementation file.
+test -------------------------- Folder with test application.
+    CMakeLists.txt ------------ CMake file of test application.
+    main.cpp ------------------ Source C++ file of test application.
+```
 
 
 
 # Supported pixel formats
 
-**Frame.h** file contains Fourcc enum which defines supported pixel formats. **Fourcc** enum declaration:
+The **Frame.h** file contains **Fourcc** enum which defines supported pixel formats. **Fourcc** enum declaration:
 
 ```cpp
-namespace cr
-{
-namespace video
-{
-
 /// Macro to make FOURCC code.
 #define MAKE_FOURCC_CODE(a,b,c,d) ((uint32_t)(((d)<<24)|((c)<<16)|((b)<<8)|(a)))
 
@@ -114,11 +130,9 @@ enum class Fourcc
     /// https://docs.kernel.org/userspace-api/media/v4l/pixfmt-compressed.html#v4l2-pix-fmt-hevc
     HEVC  = MAKE_FOURCC_CODE('H', 'E', 'V', 'C')
 };
-}
-}
 ```
 
-**Table 2** - Bytes layout of suported pixel formats. Example of 4x4 pixels image.
+**Table 2** - Bytes layout of supported pixel formats. Example of 4x4 pixels image.
 
 | ![rgb](_static/rgb_pixel_format.png)RGB24      | ![bgr](_static/bgr_pixel_format.png)BGR24      |
 | ---------------------------------------------- | ---------------------------------------------- |
@@ -136,117 +150,63 @@ enum class Fourcc
 **Frame.h** file contains **Frame** class declaration. Frame class declaration:
 
 ```cpp
-namespace cr
-{
-namespace video
-{
-/**
- * @brief Video frame class.
- */
 class Frame
 {
 public:
 
-    /**
-     * @brief Get string of current class version.
-     * @return String of current class version.
-     */
+    /// Get string of current class version.
     static std::string getVersion();
 
-    /**
-     * @brief Default class constructor.
-     */
+    /// Default class constructor.
     Frame();
 
-    /**
-     * @brief Class constructor with parameters.
-     * @param width Frame width (pixels).
-     * @param height Frame height (pixels).
-     * @param fourcc FOURCC code of data format.
-     * @param size Frame data size (bytes).
-     * @param data Pointer to data buffer.
-     */
-    Frame(uint32_t width,
-          uint32_t height,
-          Fourcc fourcc,
-          uint32_t size = 0,
+    /// Class constructor with parameters.
+    Frame(uint32_t width, uint32_t height,
+          Fourcc fourcc, uint32_t size = 0,
           uint8_t* data = nullptr);
 
-    /**
-     * @brief Copy class constructor.
-     * @param src Source class object.
-     */
+    /// Copy class constructor.
     Frame(Frame& src);
 
-    /**
-     * @brief Class destructor.
-     */
+    /// Class destructor.
     ~Frame();
 
-    /**
-     * @brief Operator "=". Operator makes full copy of data.
-     * @param src Source frame object.
-     */
+    /// Operator "=".
     Frame& operator= (const Frame& src);
 
-    /**
-     * @brief Operator "!=". Operator to compare two frame objects.
-     * @param src Source frame object.
-     * @return TRUE if the frames are not identical or FALSE.
-     */
+    /// Operator "!=".
     bool operator!= (Frame& src);
 
-    /**
-     * @brief Operator "==". Operator to compare two frame objects.
-     * @param src Source frame object.
-     * @return TRUE if the frames are identical or FALSE.
-     */
+    /// Operator "==".
     bool operator== (Frame& src);
 
-    /**
-     * @brief Clone data. Method copies frame and copy just pointer to data.
-     * @param dst Output frame.
-     */
+    /// Clone data. Method copies frame and copy just pointer to data.
     void cloneTo(Frame& dst);
 
-    /**
-     * @brief Free frame memory.
-     */
+    /// Release frame memory.
     void release();
 
-    /**
-     * @brief Serialize frame data. The method will encode data with params.
-     * @param data Pointer to data buffer.
-     *             Buffer size mus be >= frame data size + 26.
-     * @param size Size of serialized data.
-     */
+    /// Serialize frame data.
     void serialize(uint8_t* data, int& size);
 
-    /**
-     * @brief Deserialize data data to frame object.
-     * @param data Pointer to serialized data.
-     * @param size Size of serialized data.
-     * @return TRUE if the data deserialized or FALSE.
-     */
+    /// Deserialize data to frame object.
     bool deserialize(uint8_t* data, int size);
 
     /// Frame width (pixels).
-    uint32_t width{0};
+    int width{0};
     /// Frame height (pixels).
-    uint32_t height{0};
+    int height{0};
     /// FOURCC code of data format.
     Fourcc fourcc{Fourcc::YUV24};
     /// Frame data size (bytes).
-    uint32_t size{0};
+    int size{0};
     /// ID of frame.
-    uint32_t frameId{0};
+    int frameId{0};
     /// ID of video source.
-    uint32_t sourceId{0};
+    int sourceId{0};
     /// Pointer to frame data.
     uint8_t* data{nullptr};
 };
-}
-}
 ```
 
 
@@ -263,7 +223,7 @@ Frame();
 
 ## Constructor with parameters
 
-Constructor with parameters allocates memory and initilises Frame attributes (size, pixesl format etc.). By default allocated memory filled by 0. Constructor declaration:
+Constructor with parameters allocates memory and initializes Frame attributes (size, pixels format etc.). By default allocated memory filled by 0. Constructor declaration:
 
 ```cpp
 Frame(uint32_t width, uint32_t height, Fourcc fourcc, uint32_t size = 0, uint8_t* data = nullptr);
@@ -273,8 +233,8 @@ Frame(uint32_t width, uint32_t height, Fourcc fourcc, uint32_t size = 0, uint8_t
 | --------- | ------------------------------------------------------------ |
 | width     | Frame width. Must be > 0.                                    |
 | height    | Frame height. Must be > 0.                                   |
-| fourcc    | Pixel format according to **Fourcc** enum declared in Frame.h file. |
-| size      | Optional parameter. Size of external frame data. If user wants to \initialize frame data from another buffer it can be don by initializing parameter **size** and **data**. |
+| fourcc    | Pixel format according to [Fourcc](#supported-pixel-formats) enum. |
+| size      | Optional parameter. Size of external frame data. If user wants to initialize frame data from another buffer it can be done by initializing parameter **size** and **data**. |
 | data      | Optional parameter. Pointer to external frame data to be copied. |
 
 Example of frame initialization:
@@ -289,7 +249,7 @@ cr::video::Frame image2 = cr::video::Frame(640, 480, cr::video::Fourcc::YUV24);
 // Init by external data. Data will be copied.
 cr::video::Frame image3(640, 480, cr::video::Fourcc::BGR24, 921600, externalDataBuffer);
 
-// Init frame atributes manually.
+// Init frame attributes manually.
 Frame image4;
 image4.data = externalDataBuffer;
 image4.width = 640;
@@ -328,7 +288,7 @@ cr::video::Frame image3 = cr::video::Frame(image1);
 
 ## getVersion method
 
-**getVersion()** method return string of current version of **Frame** class. Method declaration:
+The **getVersion()** method returns string of current version of **Frame** class. Method declaration:
 
 ```cpp
 static std::string getVersion();
@@ -338,6 +298,12 @@ Method can be used without **Frame** class instance. Example:
 
 ```cpp
 std::cout << "Frame class version: " << cr::video::Frame::getVersion() << std::endl;
+```
+
+Console output:
+
+```bash
+Frame class version: 5.0.7
 ```
 
 
@@ -364,7 +330,7 @@ cr::video::Frame image2 = image1;
 
 ## cloneTo method
 
-**cloneTo(...)** method designed to clone frame object without copy of data. Method copies frame attributes and initialize pointer to frame data without copy of data. Method declaration:
+The **cloneTo(...)** method designed to clone frame object without copy of data. Method copies frame attributes and initialize pointer to frame data without copy of data. Method declaration:
 
 ```cpp
 void cloneTo(Frame& dst);
@@ -441,7 +407,7 @@ cr::video::Frame image2(640, 480, cr::video::Fourcc::RGB24);
 if (image1 != image2)
     std::cout << "Not identical" << std::endl;
 else
-    std::cout << "Indentical"
+    std::cout << "Identical"
 
 // Change data.
 image1.data[0] = rand() % 255;
@@ -450,14 +416,14 @@ image1.data[0] = rand() % 255;
 if (image1 != image2)
     std::cout << "Not identical" << std::endl;
 else
-    std::cout << "Indentical" << std::endl;
+    std::cout << "Identical" << std::endl;
 ```
 
 
 
 ## release method
 
-**release()** method intended to release allocated memory and reset frame attributes. Method declaration:
+The **release()** method intended to release allocated memory and reset frame attributes. Method declaration:
 
 ```cpp
 void release();
@@ -477,7 +443,7 @@ image1.release();
 
 ## serialize method
 
-**serialize(...)** method intended for serialization of Frame object with data. Sometimes the user needs to serialize an object in order to transfer or write it somewhere. Method declaration:
+The **serialize(...)** method intended for serialization of Frame object with data. Sometimes the user needs to serialize an object in order to transfer or write it somewhere. Method declaration:
 
 ```cpp
 void serialize(uint8_t* data, int& size);
@@ -508,7 +474,7 @@ srcFrame.serialize(data, size);
 
 ## deserialize method
 
-**deserialize(...)** method intended for deserialization of Frame object. Method declaration:
+The **deserialize(...)** method intended for deserialization of Frame object. Method declaration:
 
 ```cpp
 bool deserialize(uint8_t* data, int size);
@@ -616,7 +582,7 @@ uint8_t* data{nullptr};
 | -------- | ------------------------------------------------------------ |
 | width    | Frame width.                                                 |
 | height   | Frame height.                                                |
-| fourcc   | Fourcc code according to **Fourcc** enum declared in **Frame.h** file. |
+| fourcc   | Fourcc code according to [Fourcc](#supported-pixel-formats) enum declared in **Frame.h** file. |
 | size     | Size of frame data.                                          |
 | frameId  | Frame ID. User defines this filed.                           |
 | sourceId | Source ID. User defines this field.                          |
@@ -650,7 +616,7 @@ src
 You can add repository **Frame** as submodule by command:
 
 ```bash
-cd <your respository folder>
+cd <your repository folder>
 git submodule add https://github.com/ConstantRobotics-Ltd/Frame.git 3rdparty/Frame
 ```
 

@@ -30,7 +30,7 @@ bool serializationTest();
 int main(void)
 {
     cout << "#######################################" << endl;
-    cout << "Frame vlass v" << Frame::getVersion() << " test"  << endl;
+    cout << "Frame class v" << Frame::getVersion() << " test"  << endl;
     cout << "#######################################" << endl << endl;
 
     cout << "Constructor test:" << endl;

@@ -132,7 +132,7 @@ public:
     void cloneTo(Frame& dst);
 
     /**
-     * @brief Free frame memory.
+     * @brief Release frame memory.
      */
     void release();
 
@@ -145,7 +145,7 @@ public:
     void serialize(uint8_t* data, int& size);
 
     /**
-     * @brief Deserialize data data to frame object.
+     * @brief Deserialize data to frame object.
      * @param data Pointer to serialized data.
      * @param size Size of serialized data.
      * @return TRUE if the data deserialized or FALSE.
@@ -154,17 +154,17 @@ public:
 
 
     /// Frame width (pixels).
-    uint32_t width{0};
+    int width{0};
     /// Frame height (pixels).
-    uint32_t height{0};
+    int height{0};
     /// FOURCC code of data format.
     Fourcc fourcc{Fourcc::YUV24};
     /// Frame data size (bytes).
-    uint32_t size{0};
+    int size{0};
     /// ID of frame.
-    uint32_t frameId{0};
+    int frameId{0};
     /// ID of video source.
-    uint32_t sourceId{0};
+    int sourceId{0};
     /// Pointer to frame data.
     uint8_t* data{nullptr};
 
