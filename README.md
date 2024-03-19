@@ -18,10 +18,10 @@
   - [Constructor with parameters](#constructor-with-parameters)
   - [Copy-constructor](#copy-constructor)
   - [getVersion method](#getversion-method)
-  - [Copy operator =](#copy-operator-=)
+  - [Copy operator =](#copy-operator)
   - [cloneTo method](#cloneto-method)
-  - [Compare operator ==](#compare-operator-==)
-  - [Compare operator !=](#compare-operator-!=)
+  - [Compare operator ==](#compare-operator-equal)
+  - [Compare operator !=](#compare-operator-not-equal)
   - [release method](#release-method)
   - [serialize method](#serialize-method)
   - [deserialize method](#deserialize-method)
@@ -308,7 +308,7 @@ Frame class version: 5.0.7
 
 
 
-## Copy operator =
+## Copy operator
 
 Copy operator **"="** intended to full copy of frame data. Operator copies frame data and frame attributes. Operator declaration:
 
@@ -353,7 +353,7 @@ image1.cloneTo(image2);
 
 
 
-## Compare operator ==
+## Compare operator equal
 
 Compare operator **"=="** compares data attributes and frame data of to Frame objects. Operator declaration:
 
@@ -386,7 +386,7 @@ else
 
 
 
-## Compare operator !=
+## Compare operator not equal
 
 Compare operator **"!="** compares data attributes and frame data of to Frame objects. Operator declaration:
 
