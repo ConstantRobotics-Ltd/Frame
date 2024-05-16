@@ -2,7 +2,6 @@
 
 
 
-
 # **Frame C++ class**
 
 **v5.0.8**
@@ -159,87 +158,40 @@ class Frame
 {
 public:
 
-    /**
-     * @brief Get string of current class version.
-     * @return String of current class version "Major.Minor.Patch"
-     */
+    /// Get string of current class version.
     static std::string getVersion();
 
-    /**
-     * @brief Default class constructor.
-     */
+    /// Default class constructor.
     Frame();
 
-    /**
-     * @brief Class constructor with parameters.
-     * @param width Frame width (pixels).
-     * @param height Frame height (pixels).
-     * @param fourcc FOURCC code of data format.
-     * @param size Frame data size (bytes).
-     * @param data Pointer to data buffer.
-     */
-    Frame(int width,
-          int height,
-          Fourcc fourcc,
-          int size = 0,
-          uint8_t* data = nullptr);
+    /// Class constructor with parameters.
+    Frame(int width, int height, Fourcc fourcc, int size = 0, uint8_t* data = nullptr);
 
-    /**
-     * @brief Copy class constructor.
-     * @param src Source class object.
-     */
+    /// Copy class constructor.
     Frame(Frame& src);
 
-    /**
-     * @brief Class destructor.
-     */
+    /// Class destructor.
     ~Frame();
 
-    /**
-     * @brief Operator "=". Operator makes full copy of data.
-     * @param src Source frame object.
-     */
+    /// Operator "=".
     Frame& operator= (const Frame& src);
 
-    /**
-     * @brief Operator "!=". Operator to compare two frame objects.
-     * @param src Source frame object.
-     * @return TRUE if the frames are not identical or FALSE.
-     */
+    /// Operator "!=".
     bool operator!= (Frame& src);
 
-    /**
-     * @brief Operator "==". Operator to compare two frame objects.
-     * @param src Source frame object.
-     * @return TRUE if the frames are identical or FALSE.
-     */
+    /// Operator "==".
     bool operator== (Frame& src);
 
-    /**
-     * @brief Clone data. Method copies frame and copy just pointer to data.
-     * @param dst Output frame.
-     */
+    /// Clone data. Method copies frame and copy just pointer to data.
     void cloneTo(Frame& dst);
 
-    /**
-     * @brief Release frame memory.
-     */
+    /// Release frame memory.
     void release();
 
-    /**
-     * @brief Serialize frame data. The method will encode data with params.
-     * @param data Pointer to data buffer.
-     *             Buffer size mus be >= frame data size + 26.
-     * @param size Size of serialized data.
-     */
+    /// Serialize frame data.
     void serialize(uint8_t* data, int& size);
 
-    /**
-     * @brief Deserialize data to frame object.
-     * @param data Pointer to serialized data.
-     * @param size Size of serialized data.
-     * @return TRUE if the data deserialized or FALSE.
-     */
+    /// Deserialize data to frame object.
     bool deserialize(uint8_t* data, int size);
 
 
@@ -277,7 +229,7 @@ Frame();
 Constructor with parameters allocates memory and initializes Frame attributes (size, pixels format etc.). By default allocated memory filled by 0. Constructor declaration:
 
 ```cpp
-Frame(uint32_t width, uint32_t height, Fourcc fourcc, uint32_t size = 0, uint8_t* data = nullptr);
+Frame(int width, int height, Fourcc fourcc, int size = 0, uint8_t* data = nullptr);
 ```
 
 | Parameter | Description                                                  |
