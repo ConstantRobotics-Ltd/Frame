@@ -71,7 +71,7 @@ public:
 
     /**
      * @brief Get string of current class version.
-     * @return String of current class version.
+     * @return String of current class version "Major.Minor.Patch"
      */
     static std::string getVersion();
 
@@ -88,10 +88,10 @@ public:
      * @param size Frame data size (bytes).
      * @param data Pointer to data buffer.
      */
-    Frame(uint32_t width,
-          uint32_t height,
+    Frame(int width,
+          int height,
           Fourcc fourcc,
-          uint32_t size = 0,
+          int size = 0,
           uint8_t* data = nullptr);
 
     /**
@@ -175,6 +175,3 @@ private:
 };
 }
 }
-
-
-

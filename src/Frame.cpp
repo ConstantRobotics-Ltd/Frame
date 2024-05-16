@@ -23,10 +23,10 @@ Frame::Frame()
 
 
 
-Frame::Frame(uint32_t _width,
-             uint32_t _height,
+Frame::Frame(int _width,
+             int _height,
              Fourcc _fourcc,
-             uint32_t _size,
+             int _size,
              uint8_t* _data)
 {
     // Check frame size.
@@ -287,7 +287,7 @@ bool Frame::operator==(Frame &src)
         return true;
 
     if (size > 0 && src.size > 0)
-        for (uint32_t i = 0; i < size; ++i)
+        for (int i = 0; i < size; ++i)
             if (data[i] != src.data[i])
                 return false;
 
@@ -390,8 +390,8 @@ bool Frame::deserialize(uint8_t* _data, int _size)
 
     // Get frame size.
     int pos = 2;
-    uint32_t w = 0;
-    uint32_t h = 0;
+    int w = 0;
+    int h = 0;
     memcpy(&w, &_data[pos], 4); pos += 4;
     memcpy(&h, &_data[pos], 4); pos += 4;
 
@@ -400,15 +400,15 @@ bool Frame::deserialize(uint8_t* _data, int _size)
     memcpy(&f, &_data[pos], 4); pos += 4;
 
     // Get size.
-    uint32_t s = 0;
+    int s = 0;
     memcpy(&s, &_data[pos], 4); pos += 4;
 
     // Get frame ID.
-    uint32_t fId = 0;
+    int fId = 0;
     memcpy(&fId, &_data[pos], 4); pos += 4;
 
     // Get source ID.
-    uint32_t sId = 0;
+    int sId = 0;
     memcpy(&sId, &_data[pos], 4); pos += 4;
 
     // Check size.
@@ -479,10 +479,3 @@ bool Frame::deserialize(uint8_t* _data, int _size)
 
     return true;
 }
-
-
-
-
-
-
-

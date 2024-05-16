@@ -1,8 +1,11 @@
-![frame_logo](_static/frame_web_logo.png)
+![frame_logo](./static/frame_web_logo.png)
+
+
+
 
 # **Frame C++ class**
 
-**v5.0.7**
+**v5.0.8**
 
 
 
@@ -26,7 +29,6 @@
   - [serialize method](#serialize-method)
   - [deserialize method](#deserialize-method)
   - [Frame class public members](#frame-class-public-members)
-
 - [Build and connect to your project](#build-and-connect-to-your-project)
 
 
@@ -55,6 +57,7 @@ Frame class is basic class for other projects which describes video frame. Main 
 | 5.0.5   | 12.11.2023   | - Fixed errors serialization/deserialization functions.      |
 | 5.0.6   | 14.12.2023   | - Memory leakage from "=" operator fixed.                    |
 | 5.0.7   | 19.03.2024   | - Type of data fields changes from uint32_t to int.          |
+| 5.0.8   | 16.04.2024   | - Documentation updated.<br />- Method signatures optimizes. |
 
 
 
@@ -65,10 +68,10 @@ The library supplied by source code only. The user would be given a set of files
 ```xml
 CMakeLists.txt ---------------- Main CMake file of the library.
 src --------------------------- Folder with library source code.
-    CMakeLists.txt ------------ CMake file.
+    CMakeLists.txt ------------ CMake file of the library.
     Frame.h ------------------- Main library header file.
     FrameVersion.h ------------ Header file with library version.
-    FrameVersion.h.in --------- File for CMake to generate version header.
+    FrameVersion.h.in --------- CMake service file to generate version header.
     Frame.cpp ----------------- C++ implementation file.
 test -------------------------- Folder with test application.
     CMakeLists.txt ------------ CMake file of test application.
@@ -134,16 +137,18 @@ enum class Fourcc
 
 **Table 2** - Bytes layout of supported pixel formats. Example of 4x4 pixels image.
 
-| ![rgb](_static/rgb_pixel_format.png)RGB24      | ![bgr](_static/bgr_pixel_format.png)BGR24      |
+| ![rgb](./static/rgb_pixel_format.png)RGB24      | ![bgr](./static/bgr_pixel_format.png)BGR24      |
 | ---------------------------------------------- | ---------------------------------------------- |
-| ![yuv](_static/yuv3_pixel_format.png)**YUV24** | ![gray](_static/gray_pixel_format.png)**GRAY** |
-| ![yuyv](_static/yuyv_pixel_format.png)**YUYV** | ![uyvy](_static/uyvy_pixel_format.png)**UYVY** |
-| ![nv12](_static/nv12_pixel_format.png)**NV12** | ![nv21](_static/nv21_pixel_format.png)**NV21** |
-| ![yu12](_static/yu12_pixel_format.png)**YU12** | ![yv12](_static/yv12_pixel_format.png)**YV12** |
+| ![yuv](./static/yuv3_pixel_format.png)**YUV24** | ![gray](./static/gray_pixel_format.png)**GRAY** |
+| ![yuyv](./static/yuyv_pixel_format.png)**YUYV** | ![uyvy](./static/uyvy_pixel_format.png)**UYVY** |
+| ![nv12](./static/nv12_pixel_format.png)**NV12** | ![nv21](./static/nv21_pixel_format.png)**NV21** |
+| ![yu12](./static/yu12_pixel_format.png)**YU12** | ![yv12](./static/yv12_pixel_format.png)**YV12** |
 
 
 
 # Frame class description
+
+
 
 ## Frame class declaration
 
@@ -154,43 +159,89 @@ class Frame
 {
 public:
 
-    /// Get string of current class version.
+    /**
+     * @brief Get string of current class version.
+     * @return String of current class version "Major.Minor.Patch"
+     */
     static std::string getVersion();
 
-    /// Default class constructor.
+    /**
+     * @brief Default class constructor.
+     */
     Frame();
 
-    /// Class constructor with parameters.
-    Frame(uint32_t width, uint32_t height,
-          Fourcc fourcc, uint32_t size = 0,
+    /**
+     * @brief Class constructor with parameters.
+     * @param width Frame width (pixels).
+     * @param height Frame height (pixels).
+     * @param fourcc FOURCC code of data format.
+     * @param size Frame data size (bytes).
+     * @param data Pointer to data buffer.
+     */
+    Frame(int width,
+          int height,
+          Fourcc fourcc,
+          int size = 0,
           uint8_t* data = nullptr);
 
-    /// Copy class constructor.
+    /**
+     * @brief Copy class constructor.
+     * @param src Source class object.
+     */
     Frame(Frame& src);
 
-    /// Class destructor.
+    /**
+     * @brief Class destructor.
+     */
     ~Frame();
 
-    /// Operator "=".
+    /**
+     * @brief Operator "=". Operator makes full copy of data.
+     * @param src Source frame object.
+     */
     Frame& operator= (const Frame& src);
 
-    /// Operator "!=".
+    /**
+     * @brief Operator "!=". Operator to compare two frame objects.
+     * @param src Source frame object.
+     * @return TRUE if the frames are not identical or FALSE.
+     */
     bool operator!= (Frame& src);
 
-    /// Operator "==".
+    /**
+     * @brief Operator "==". Operator to compare two frame objects.
+     * @param src Source frame object.
+     * @return TRUE if the frames are identical or FALSE.
+     */
     bool operator== (Frame& src);
 
-    /// Clone data. Method copies frame and copy just pointer to data.
+    /**
+     * @brief Clone data. Method copies frame and copy just pointer to data.
+     * @param dst Output frame.
+     */
     void cloneTo(Frame& dst);
 
-    /// Release frame memory.
+    /**
+     * @brief Release frame memory.
+     */
     void release();
 
-    /// Serialize frame data.
+    /**
+     * @brief Serialize frame data. The method will encode data with params.
+     * @param data Pointer to data buffer.
+     *             Buffer size mus be >= frame data size + 26.
+     * @param size Size of serialized data.
+     */
     void serialize(uint8_t* data, int& size);
 
-    /// Deserialize data to frame object.
+    /**
+     * @brief Deserialize data to frame object.
+     * @param data Pointer to serialized data.
+     * @param size Size of serialized data.
+     * @return TRUE if the data deserialized or FALSE.
+     */
     bool deserialize(uint8_t* data, int size);
+
 
     /// Frame width (pixels).
     int width{0};
@@ -303,7 +354,7 @@ std::cout << "Frame class version: " << cr::video::Frame::getVersion() << std::e
 Console output:
 
 ```bash
-Frame class version: 5.0.7
+Frame class version: 5.0.8
 ```
 
 
