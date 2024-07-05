@@ -4,7 +4,7 @@
 
 # **Frame C++ class**
 
-**v5.0.8**
+**v5.0.9**
 
 
 
@@ -34,7 +34,7 @@
 
 # Overview
 
-Frame class is basic class for other projects which describes video frame. Main file **Frame.h** contains declaration of **Frame** class and **Fourcc** enum which describes pixel formats supported by **Frame** class. The library doesn't have any third party dependencies. It uses C++17 standard. The library is licensed under the **Apache 2.0** license.
+**Frame** class is basic class for other projects which describes video frame. Main file **Frame.h** contains declaration of **Frame** class and **Fourcc** enum which describes pixel formats supported by **Frame** class. The library doesn't have any third party dependencies. It uses C++17 standard. The library is licensed under the **Apache 2.0** license.
 
 
 
@@ -57,6 +57,7 @@ Frame class is basic class for other projects which describes video frame. Main 
 | 5.0.6   | 14.12.2023   | - Memory leakage from "=" operator fixed.                    |
 | 5.0.7   | 19.03.2024   | - Type of data fields changes from uint32_t to int.          |
 | 5.0.8   | 16.04.2024   | - Documentation updated.<br />- Method signatures optimizes. |
+| 5.0.9   | 05.07.2024   | - CMake updated.                                             |
 
 
 
@@ -65,16 +66,16 @@ Frame class is basic class for other projects which describes video frame. Main 
 The library supplied by source code only. The user would be given a set of files in the form of a CMake project (repository). The repository structure is shown below:
 
 ```xml
-CMakeLists.txt ---------------- Main CMake file of the library.
-src --------------------------- Folder with library source code.
-    CMakeLists.txt ------------ CMake file of the library.
-    Frame.h ------------------- Main library header file.
-    FrameVersion.h ------------ Header file with library version.
-    FrameVersion.h.in --------- CMake service file to generate version header.
-    Frame.cpp ----------------- C++ implementation file.
-test -------------------------- Folder with test application.
-    CMakeLists.txt ------------ CMake file of test application.
-    main.cpp ------------------ Source C++ file of test application.
+CMakeLists.txt --------- Main CMake file of the library.
+src -------------------- Folder with library source code.
+    CMakeLists.txt ----- CMake file of the library.
+    Frame.h ------------ Main library header file.
+    FrameVersion.h ----- Header file with library version.
+    FrameVersion.h.in -- CMake service file to generate version header.
+    Frame.cpp ---------- C++ implementation file.
+test ------------------- Folder with test application.
+    CMakeLists.txt ----- CMake file of test application.
+    main.cpp ----------- Source C++ file of test application.
 ```
 
 
@@ -154,6 +155,10 @@ enum class Fourcc
 **Frame.h** file contains **Frame** class declaration. Frame class declaration:
 
 ```cpp
+namespace cr
+{
+namespace video
+{
 class Frame
 {
 public:
@@ -173,13 +178,13 @@ public:
     /// Class destructor.
     ~Frame();
 
-    /// Operator "=".
+    /// Operator "=". Operator makes full copy of data.
     Frame& operator= (const Frame& src);
 
-    /// Operator "!=".
+    /// Operator "!=". Operator to compare two frame objects.
     bool operator!= (Frame& src);
 
-    /// Operator "==".
+    /// Operator "==". Operator to compare two frame objects.
     bool operator== (Frame& src);
 
     /// Clone data. Method copies frame and copy just pointer to data.
@@ -193,7 +198,6 @@ public:
 
     /// Deserialize data to frame object.
     bool deserialize(uint8_t* data, int size);
-
 
     /// Frame width (pixels).
     int width{0};
@@ -210,13 +214,15 @@ public:
     /// Pointer to frame data.
     uint8_t* data{nullptr};
 };
+}
+}
 ```
 
 
 
 ## Default constructor
 
-Default Frame class constructor doesn't do anything. It doesn't allocate memory. Constructor declaration:
+Default Frame class constructor does nothing. It doesn't allocate memory. Constructor declaration:
 
 ```cpp
 Frame();
@@ -226,7 +232,7 @@ Frame();
 
 ## Constructor with parameters
 
-Constructor with parameters allocates memory and initializes Frame attributes (size, pixels format etc.). By default allocated memory filled by 0. Constructor declaration:
+Constructor with parameters allocates memory and initializes Frame attributes (size, pixels format etc.). By default allocated memory filled by 0 but if user provides pointer to frame data it will be copied to internal frame buffer. Constructor declaration:
 
 ```cpp
 Frame(int width, int height, Fourcc fourcc, int size = 0, uint8_t* data = nullptr);
@@ -306,7 +312,7 @@ std::cout << "Frame class version: " << cr::video::Frame::getVersion() << std::e
 Console output:
 
 ```bash
-Frame class version: 5.0.8
+Frame class version: 5.0.9
 ```
 
 
@@ -623,7 +629,7 @@ cd <your repository folder>
 git submodule add https://github.com/ConstantRobotics-Ltd/Frame.git 3rdparty/Frame
 ```
 
-In you repository folder will be created folder **3rdparty/Frame** which contains files of **Frame** repository. New structure of your repository:
+In you repository folder will be created folder **3rdparty/Frame** which contains files of **Frame** repository. Or you can copy **Frame** repository folder directly to **3rdparty** folder of your repository. New structure of your repository:
 
 ```bash
 CMakeLists.txt
@@ -674,7 +680,7 @@ if (${PARENT}_SUBMODULE_FRAME)
 endif()
 ```
 
-File **3rdparty/CMakeLists.txt** adds folder **Frame** to your project and excludes test application (Frame class tests) from compiling. Your repository new structure will be:
+File **3rdparty/CMakeLists.txt** adds folder **Frame** to your project and excludes test application (Frame class tests) from compiling (by default test application excluded from compiling if **Frame** repository used as sub-repository). Your repository new structure will be:
 
 ```bash
 CMakeLists.txt

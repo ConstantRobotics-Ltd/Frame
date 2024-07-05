@@ -316,7 +316,7 @@ bool Frame::operator!=(Frame &src)
         return false;
 
     if (size > 0 && src.size > 0)
-        for (uint32_t i = 0; i < size; ++i)
+        for (int i = 0; i < size; ++i)
             if (data[i] != src.data[i])
                 return true;
 

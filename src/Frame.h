@@ -81,18 +81,16 @@ public:
     Frame();
 
     /**
-     * @brief Class constructor with parameters.
+     * @brief Class constructor with parameters. This constructor allocates
+     * memory according to frame size and format,
      * @param width Frame width (pixels).
      * @param height Frame height (pixels).
      * @param fourcc FOURCC code of data format.
      * @param size Frame data size (bytes).
-     * @param data Pointer to data buffer.
+     * @param data Pointer to data buffer. If pointer to data provided the class
+     * will copy data to internal buffer.
      */
-    Frame(int width,
-          int height,
-          Fourcc fourcc,
-          int size = 0,
-          uint8_t* data = nullptr);
+    Frame(int width, int height, Fourcc fourcc, int size = 0, uint8_t* data = nullptr);
 
     /**
      * @brief Copy class constructor.
@@ -151,7 +149,6 @@ public:
      * @return TRUE if the data deserialized or FALSE.
      */
     bool deserialize(uint8_t* data, int size);
-
 
     /// Frame width (pixels).
     int width{0};
