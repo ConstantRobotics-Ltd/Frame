@@ -38,10 +38,10 @@ endif()
 SET(${PARENT}_FRAME                          ON  CACHE BOOL "" ${REWRITE_FORCE})
 if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     SET(${PARENT}_FRAME_TEST                 OFF CACHE BOOL "" ${REWRITE_FORCE})
-    message("Included as subrepository")
+    message("${PROJECT_NAME} included as subrepository.")
 else()
     SET(${PARENT}_FRAME_TEST                 ON  CACHE BOOL "" ${REWRITE_FORCE})
-    message("Stand alone repository")
+    message("${PROJECT_NAME} is a standalone project.")
 endif()
 
 
