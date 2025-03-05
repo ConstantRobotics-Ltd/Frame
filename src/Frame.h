@@ -96,7 +96,7 @@ public:
      * @brief Copy class constructor.
      * @param src Source class object.
      */
-    Frame(Frame& src);
+    Frame(Frame const& src);
 
     /**
      * @brief Class destructor.
@@ -114,14 +114,14 @@ public:
      * @param src Source frame object.
      * @return TRUE if the frames are not identical or FALSE.
      */
-    bool operator!= (Frame& src);
+    bool operator!= (Frame const& src) const;
 
     /**
      * @brief Operator "==". Operator to compare two frame objects.
      * @param src Source frame object.
      * @return TRUE if the frames are identical or FALSE.
      */
-    bool operator== (Frame& src);
+    bool operator== (Frame const& src) const;
 
     /**
      * @brief Clone data. Method copies frame and copy just pointer to data.

@@ -91,11 +91,8 @@ Frame::Frame(int _width,
 
 
 
-Frame::Frame(Frame &src)
+Frame::Frame(Frame const& src)
 {
-    // free memory if allocated before.
-    release();
-
     // Copy fields.
     width = src.width;
     height = src.height;
@@ -267,7 +264,7 @@ void Frame::cloneTo(Frame& dst)
 
 
 
-bool Frame::operator==(Frame &src)
+bool Frame::operator==(Frame const& src) const
 {
     // Check yourself.
     if (this == &src)
@@ -296,31 +293,9 @@ bool Frame::operator==(Frame &src)
 
 
 
-bool Frame::operator!=(Frame &src)
+bool Frame::operator!=(Frame const& src) const
 {
-    // Check yourself.
-    if (this == &src)
-        return false;
-
-    // Check frame atributes.
-    if (width != src.width ||
-        height != src.height ||
-        fourcc != src.fourcc ||
-        frameId != src.frameId ||
-        sourceId != src.sourceId ||
-        size != src.size)
-        return true;
-
-    // Compare frame data.
-    if (data == src.data)
-        return false;
-
-    if (size > 0 && src.size > 0)
-        for (int i = 0; i < size; ++i)
-            if (data[i] != src.data[i])
-                return true;
-
-    return false;
+    return !(*this == src);
 }
 
 
