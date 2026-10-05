@@ -1,7 +1,7 @@
 #pragma once
 
 #define FRAME_MAJOR_VERSION 5
-#define FRAME_MINOR_VERSION 0
-#define FRAME_PATCH_VERSION 9
+#define FRAME_MINOR_VERSION 1
+#define FRAME_PATCH_VERSION 0
 
-#define FRAME_VERSION "5.0.9"
+#define FRAME_VERSION "5.1.0"

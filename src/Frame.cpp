@@ -1,11 +1,85 @@
 #include "Frame.h"
 #include "FrameVersion.h"
+#include <algorithm>
+#include <climits>
 
 
 
 // Link namespaces.
 using namespace std;
 using namespace cr::video;
+
+
+
+namespace
+{
+
+/// Size of the header of serialized data (bytes): format version (2), width,
+/// height, FOURCC, data size, frame ID and source ID (4 bytes each).
+constexpr int SERIALIZED_HEADER_SIZE{26};
+
+/// Version of the serialization format. It is not the version of the library:
+/// it changes only if the layout of the serialized data changes. All versions
+/// 5.0.x and 5.1.x of the library read and write format 5.0.
+constexpr uint8_t SERIALIZED_FORMAT_MAJOR{5};
+constexpr uint8_t SERIALIZED_FORMAT_MINOR{0};
+
+
+
+/**
+ * @brief Calculate the size of the frame data (bytes) according to the pixel
+ * format.
+ * @param fourcc FOURCC code of data format.
+ * @param width Frame width (pixels).
+ * @param height Frame height (pixels).
+ * @return Frame data size or -1 if the pixel format is unknown, the width or
+ * the height is negative or the size does not fit in an int.
+ */
+int64_t calculateDataSize(Fourcc fourcc, int width, int height)
+{
+    if (width < 0 || height < 0)
+        return -1;
+
+    // Every pixel format needs at least one byte per pixel.
+    const int64_t w = width;
+    const int64_t h = height;
+    if (w * h > INT_MAX)
+        return -1;
+
+    int64_t dataSize = 0;
+    switch (fourcc)
+    {
+    case Fourcc::BGR24:
+    case Fourcc::RGB24:
+    case Fourcc::YUV24:
+        dataSize = w * h * 3;
+        break;
+    case Fourcc::NV12:
+    case Fourcc::NV21:
+    case Fourcc::YU12:
+    case Fourcc::YV12:
+        dataSize = w * (h + h / 2);
+        break;
+    case Fourcc::YUYV:
+    case Fourcc::UYVY:
+        dataSize = w * h * 2;
+        break;
+    case Fourcc::JPEG:
+    case Fourcc::H264:
+    case Fourcc::HEVC:
+        dataSize = w * h * 4;
+        break;
+    case Fourcc::GRAY:
+        dataSize = w * h;
+        break;
+    default:
+        return -1;
+    }
+
+    return (dataSize > INT_MAX) ? -1 : dataSize;
+}
+
+}
 
 
 
@@ -36,48 +110,27 @@ Frame::Frame(int _width,
         _height = 0;
     }
 
-    // Calculate frame data size according to pixel format.
-    switch (_fourcc)
-    {
-    case Fourcc::BGR24:
-    case Fourcc::RGB24:
-    case Fourcc::YUV24:
-        size = _width * _height * 3;
-        break;
-    case Fourcc::NV12:
-    case Fourcc::NV21:
-    case Fourcc::YU12:
-    case Fourcc::YV12:
-        size = _width * (_height + _height / 2);
-        break;
-    case Fourcc::YUYV:
-    case Fourcc::UYVY:
-        size = _width * _height * 2;
-        break;
-    case Fourcc::JPEG:
-    case Fourcc::H264:
-    case Fourcc::HEVC:
-        size = _width * _height * 4;
-        break;
-    case Fourcc::GRAY:
-        size = _width * _height;
-        break;
-    default:
+    // Calculate frame data size according to pixel format. A frame with an
+    // unknown pixel format, a negative size or a size that does not fit in an
+    // int stays empty.
+    const int64_t dataSize = calculateDataSize(_fourcc, _width, _height);
+    if (dataSize < 0)
         return;
-    }
+    size = static_cast<int>(dataSize);
 
     // Allocate memory.
     if (size > 0)
     {
-        data = new uint8_t[size];
-        memset(data, 0, size);
+        data = new uint8_t[static_cast<size_t>(size)];
+        memset(data, 0, static_cast<size_t>(size));
         m_isAllocated = true;
     }
 
     // Copy data.
-    if (_size <= size && _data != nullptr)
+    if (_data != nullptr && _size >= 0 && _size <= size)
     {
-        memcpy(data, _data, _size);
+        if (_size > 0)
+            memcpy(data, _data, static_cast<size_t>(_size));
         size = _size;
     }
 
@@ -93,62 +146,9 @@ Frame::Frame(int _width,
 
 Frame::Frame(Frame &src)
 {
-    // free memory if allocated before.
-    release();
-
-    // Copy fields.
-    width = src.width;
-    height = src.height;
-    fourcc = src.fourcc;
-    sourceId = src.sourceId;
-    frameId = src.frameId;
-
-    // Calculate frame data size according to pixel format.
-    switch (fourcc)
-    {
-    case Fourcc::BGR24:
-    case Fourcc::RGB24:
-    case Fourcc::YUV24:
-        size = width * height * 3;
-        break;
-    case Fourcc::NV12:
-    case Fourcc::NV21:
-    case Fourcc::YU12:
-    case Fourcc::YV12:
-        size = width * (height + height / 2);
-        break;
-    case Fourcc::YUYV:
-    case Fourcc::UYVY:
-        size = width * height * 2;
-        break;
-    case Fourcc::JPEG:
-    case Fourcc::H264:
-    case Fourcc::HEVC:
-        size = width * height * 4;
-        break;
-    case Fourcc::GRAY:
-        size = width * height;
-        break;
-    default:
-        return;
-    }
-
-    // Allocate memory.
-    if (size > 0)
-    {
-        data = new uint8_t[size];
-        memset(data, 0, size);
-        m_isAllocated = true;
-    }
-
-    // Copy data.
-    if (src.size <= size && src.data != nullptr)
-    {
-        memcpy(data, src.data, src.size);
-    }
-
-    // Copy size.
-    size = src.size;
+    // The new object is empty (default values of the fields): the operator
+    // makes the copy.
+    *this = src;
 }
 
 
@@ -168,76 +168,59 @@ Frame &Frame::operator= (const Frame &src)
     if (this == &src)
         return *this;
 
-    // Copy frame ID and source ID.
-    frameId = src.frameId;
-    sourceId = src.sourceId;
+    // The size of the source data must be positive and the data must exist to
+    // copy it.
+    const int srcSize = (src.size > 0) ? src.size : 0;
+    const int copySize = (src.data != nullptr) ? srcSize : 0;
 
     // Check size and pixel format.
-    if (width == src.width &&
+    if (data != nullptr &&
+        width == src.width &&
         height == src.height &&
-        fourcc == src.fourcc)
+        fourcc == src.fourcc &&
+        srcSize <= size)
     {
-        // Copy frame data.
-        memcpy(data, src.data, src.size);
-        size = src.size;
+        // Copy frame data to the buffer that is already there. The size field
+        // of this frame tells how many bytes of the buffer can be used.
+        if (copySize > 0 && data != src.data)
+            memcpy(data, src.data, static_cast<size_t>(copySize));
+        size = srcSize;
     }
     else
     {
+        // Calculate the size of the buffer according to pixel format. The
+        // size of the source data is the minimum if the pixel format is
+        // unknown or the data is larger than the pixel format needs.
+        int64_t capacity = calculateDataSize(src.fourcc, src.width, src.height);
+        capacity = max<int64_t>(capacity, srcSize);
+
+        // Allocate and fill the new buffer first: if the allocation fails the
+        // frame is not changed.
+        uint8_t* newData = nullptr;
+        if (capacity > 0)
+        {
+            newData = new uint8_t[static_cast<size_t>(capacity)];
+            memset(newData, 0, static_cast<size_t>(capacity));
+            if (copySize > 0)
+                memcpy(newData, src.data, static_cast<size_t>(copySize));
+        }
+
+        // Release the old buffer (the source can use it, so after the copy).
+        if (m_isAllocated)
+            delete[] data;
+
         // Copy atributes.
         width = src.width;
         height = src.height;
         fourcc = src.fourcc;
-
-        // Calculate frame data size according to pixel format.
-        switch (fourcc)
-        {
-        case Fourcc::BGR24:
-        case Fourcc::RGB24:
-        case Fourcc::YUV24:
-            size = width * height * 3;
-            break;
-        case Fourcc::NV12:
-        case Fourcc::NV21:
-        case Fourcc::YU12:
-        case Fourcc::YV12:
-            size = width * (height + height / 2);
-            break;
-        case Fourcc::YUYV:
-        case Fourcc::UYVY:
-            size = width * height * 2;
-            break;
-        case Fourcc::JPEG:
-        case Fourcc::H264:
-        case Fourcc::HEVC:
-            size = width * height * 4;
-            break;
-        case Fourcc::GRAY:
-            size = width * height;
-            break;
-        default:
-            return *this;
-        }
-
-        if (m_isAllocated)
-            delete[] data;
-
-        // Allocate memory.
-        if (size > 0)
-        {
-            data = new uint8_t[size];
-            memset(data, 0, size);
-            m_isAllocated = true;
-        }
-
-        // Copy data.
-        if (src.size <= size && src.data != nullptr && size > 0)
-        {
-            memcpy(data, src.data, src.size);
-        }
-
-        // Copy size.
-        size = src.size;
+        data = newData;
+        m_isAllocated = (newData != nullptr);
+        size = srcSize;
     }
+
+    // Copy frame ID and source ID.
+    frameId = src.frameId;
+    sourceId = src.sourceId;
 
     return *this;
 }
@@ -249,6 +232,16 @@ void Frame::cloneTo(Frame& dst)
     // Check yourself.
     if (this == &dst)
         return;
+
+    // The destination gives up its own data: nobody else can release it
+    // after the pointer is replaced. If the destination already owns the
+    // data of this frame it stays the owner.
+    if (dst.data != data)
+    {
+        if (dst.m_isAllocated)
+            delete[] dst.data;
+        dst.m_isAllocated = false;
+    }
 
     // Copy frame ID and source ID.
     dst.frameId = frameId;
@@ -262,7 +255,6 @@ void Frame::cloneTo(Frame& dst)
 
     // Copy pointer to data.
     dst.data = data;
-    dst.m_isAllocated = false;
 }
 
 
@@ -283,44 +275,22 @@ bool Frame::operator==(Frame &src)
         return false;
 
     // Compare frame data.
-    if (data == src.data)
+    if (data == src.data || size <= 0)
         return true;
 
-    if (size > 0 && src.size > 0)
-        for (int i = 0; i < size; ++i)
-            if (data[i] != src.data[i])
-                return false;
+    // Frames with data size but without data are not identical to frames with
+    // data.
+    if (data == nullptr || src.data == nullptr)
+        return false;
 
-    return true;
+    return memcmp(data, src.data, static_cast<size_t>(size)) == 0;
 }
 
 
 
 bool Frame::operator!=(Frame &src)
 {
-    // Check yourself.
-    if (this == &src)
-        return false;
-
-    // Check frame atributes.
-    if (width != src.width ||
-        height != src.height ||
-        fourcc != src.fourcc ||
-        frameId != src.frameId ||
-        sourceId != src.sourceId ||
-        size != src.size)
-        return true;
-
-    // Compare frame data.
-    if (data == src.data)
-        return false;
-
-    if (size > 0 && src.size > 0)
-        for (int i = 0; i < size; ++i)
-            if (data[i] != src.data[i])
-                return true;
-
-    return false;
+    return !(*this == src);
 }
 
 
@@ -333,10 +303,11 @@ void Frame::release()
         m_isAllocated = false;
     }
 
-    // Reset fields.
+    // Reset fields. The pointer is reset also if the data belongs to someone
+    // else (a clone of another frame): the frame is empty after the call.
+    data = nullptr;
     width = 0;
     height = 0;
-    frameId = 0;
     size = 0;
     frameId = 0;
     sourceId = 0;
@@ -346,21 +317,33 @@ void Frame::release()
 
 void Frame::serialize(uint8_t* _data, int& _size)
 {
-    // Copy Frame class version.
+    // The size field is the size of the data that follows. A frame without
+    // data is serialized without data.
+    const int dataSize = (data != nullptr && size > 0) ? size : 0;
+
+    // Nothing is written if there is no buffer or the serialized frame is too
+    // large to describe its size with an int.
+    if (_data == nullptr || dataSize > INT_MAX - SERIALIZED_HEADER_SIZE)
+    {
+        _size = 0;
+        return;
+    }
+
+    // Copy the version of the serialization format.
     int pos = 0;
-    _data[pos] = FRAME_MAJOR_VERSION; pos += 1;
-    _data[pos] = FRAME_MINOR_VERSION; pos += 1;
+    _data[pos] = SERIALIZED_FORMAT_MAJOR; pos += 1;
+    _data[pos] = SERIALIZED_FORMAT_MINOR; pos += 1;
 
     // Copy frame size.
     memcpy(&_data[pos], &width, 4); pos += 4;
     memcpy(&_data[pos], &height, 4); pos += 4;
 
     // Copy FOURCC.
-    uint32_t value = (uint32_t)fourcc;
+    uint32_t value = static_cast<uint32_t>(fourcc);
     memcpy(&_data[pos], &value, 4); pos += 4;
 
     // Copy size.
-    memcpy(&_data[pos], &size, 4); pos += 4;
+    memcpy(&_data[pos], &dataSize, 4); pos += 4;
 
     // Copy frame ID.
     memcpy(&_data[pos], &frameId, 4); pos += 4;
@@ -369,9 +352,9 @@ void Frame::serialize(uint8_t* _data, int& _size)
     memcpy(&_data[pos], &sourceId, 4); pos += 4;
 
     // Copy data.
-    if (size > 0)
-        memcpy(&_data[pos], data, size);
-    pos += size;
+    if (dataSize > 0)
+        memcpy(&_data[pos], data, static_cast<size_t>(dataSize));
+    pos += dataSize;
 
     _size = pos;
 }
@@ -381,11 +364,12 @@ void Frame::serialize(uint8_t* _data, int& _size)
 bool Frame::deserialize(uint8_t* _data, int _size)
 {
     // Check params.
-    if (_data == nullptr || _size < 26)
+    if (_data == nullptr || _size < SERIALIZED_HEADER_SIZE)
         return false;
 
-    // Check frame class version.
-    if (_data[0] != FRAME_MAJOR_VERSION || _data[1] != FRAME_MINOR_VERSION)
+    // Check the version of the serialization format.
+    if (_data[0] != SERIALIZED_FORMAT_MAJOR ||
+        _data[1] != SERIALIZED_FORMAT_MINOR)
         return false;
 
     // Get frame size.
@@ -412,70 +396,52 @@ bool Frame::deserialize(uint8_t* _data, int _size)
     memcpy(&sId, &_data[pos], 4); pos += 4;
 
     // Check size.
-    if (s != _size - 26)
+    if (s != _size - SERIALIZED_HEADER_SIZE)
         return false;
 
-    // Check FOURCC.
-    if (width != w || height != h || fourcc != (Fourcc)f)
+    // Check the pixel format and the frame size. The frame is not changed if
+    // the data is not valid.
+    const Fourcc format = static_cast<Fourcc>(f);
+    const int64_t pixelSize = calculateDataSize(format, w, h);
+    if (pixelSize < 0)
+        return false;
+
+    // Check size and pixel format.
+    uint8_t* newData = nullptr;
+    if (data == nullptr ||
+        width != w ||
+        height != h ||
+        fourcc != format ||
+        s > size)
     {
-        // Update params.
-        width = w;
-        height = h;
-        fourcc = (Fourcc)f;
+        // Allocate memory first: if the allocation fails the frame is not
+        // changed. The buffer is large enough for the data of the blob also
+        // if it is larger than the pixel format needs.
+        const int64_t capacity = max<int64_t>(pixelSize, s);
+        if (capacity > 0)
+        {
+            newData = new uint8_t[static_cast<size_t>(capacity)];
+            memset(newData, 0, static_cast<size_t>(capacity));
+        }
 
         // Release memory.
         if (m_isAllocated)
             delete[] data;
-
-        // Calculate frame data size according to pixel format.
-        switch ((Fourcc)f)
-        {
-        case Fourcc::BGR24:
-        case Fourcc::RGB24:
-        case Fourcc::YUV24:
-            size = width * height * 3;
-            break;
-        case Fourcc::NV12:
-        case Fourcc::NV21:
-        case Fourcc::YU12:
-        case Fourcc::YV12:
-            size = width * (height + height / 2);
-            break;
-        case Fourcc::YUYV:
-        case Fourcc::UYVY:
-            size = width * height * 2;
-            break;
-        case Fourcc::JPEG:
-        case Fourcc::H264:
-        case Fourcc::HEVC:
-            size = width * height * 4;
-            break;
-        case Fourcc::GRAY:
-            size = width * height;
-            break;
-        default:
-            return false;
-        }
-
-        // Allocate memory.
-        if (size > 0)
-        {
-            data = new uint8_t[size];
-            m_isAllocated = true;
-        }
+        data = newData;
+        m_isAllocated = (newData != nullptr);
     }
 
     // Copy atributes.
     width = w;
     height = h;
-    fourcc = (Fourcc)f;
+    fourcc = format;
     size = s;
     frameId = fId;
     sourceId = sId;
 
     // Copy data.
-    if (size > 0)
-        memcpy(data, &_data[pos], size);
+    if (s > 0)
+        memcpy(data, &_data[pos], static_cast<size_t>(s));
 
     return true;
 }

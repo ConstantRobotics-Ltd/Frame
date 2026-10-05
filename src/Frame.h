@@ -82,7 +82,9 @@ public:
 
     /**
      * @brief Class constructor with parameters. This constructor allocates
-     * memory according to frame size and format,
+     * memory according to frame size and format. A frame with an unknown
+     * format, a negative width or height or a data size that does not fit in
+     * an int is empty (no memory is allocated).
      * @param width Frame width (pixels).
      * @param height Frame height (pixels).
      * @param fourcc FOURCC code of data format.
@@ -104,7 +106,9 @@ public:
     ~Frame();
 
     /**
-     * @brief Operator "=". Operator makes full copy of data.
+     * @brief Operator "=". Operator makes full copy of data. If the memory
+     * can not be allocated the method throws std::bad_alloc and the frame is
+     * not changed.
      * @param src Source frame object.
      */
     Frame& operator= (const Frame& src);
@@ -125,25 +129,33 @@ public:
 
     /**
      * @brief Clone data. Method copies frame and copy just pointer to data.
+     * The data of the output frame that it owned before is released. The
+     * output frame does not own the cloned data: it stays valid until this
+     * frame releases it.
      * @param dst Output frame.
      */
     void cloneTo(Frame& dst);
 
     /**
-     * @brief Release frame memory.
+     * @brief Release frame memory. The method resets the fields (the pointer
+     * to data too), the frame is empty after the call.
      */
     void release();
 
     /**
      * @brief Serialize frame data. The method will encode data with params.
+     * The format of the serialized data is version 5.0 in all versions 5.0.x
+     * and 5.1.x of the class.
      * @param data Pointer to data buffer.
-     *             Buffer size mus be >= frame data size + 26.
-     * @param size Size of serialized data.
+     *             Buffer size must be >= frame data size + 26.
+     * @param size Size of serialized data. Zero if nothing was written (no
+     *             buffer or data too large).
      */
     void serialize(uint8_t* data, int& size);
 
     /**
-     * @brief Deserialize data to frame object.
+     * @brief Deserialize data to frame object. The frame is not changed if
+     * the data is not valid.
      * @param data Pointer to serialized data.
      * @param size Size of serialized data.
      * @return TRUE if the data deserialized or FALSE.

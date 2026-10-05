@@ -4,7 +4,7 @@
 
 # **Frame C++ class**
 
-**v5.0.9**
+**v5.1.0**
 
 
 
@@ -58,6 +58,7 @@
 | 5.0.7   | 19.03.2024   | - Type of data fields changes from uint32_t to int.          |
 | 5.0.8   | 16.04.2024   | - Documentation updated.<br />- Method signatures optimizes. |
 | 5.0.9   | 05.07.2024   | - CMake updated.                                             |
+| 5.1.0   | 04.10.2026   | - Review of the class, errors fixed: <br />- `deserialize(...)` could write beyond the allocated memory (the data size of the serialized data is larger than the pixel format needs), could free the memory twice (unknown pixel format) and used negative or overflowing sizes.<br />- Copy operator and copy constructor: memory freed twice or used after it was freed (empty source, size 0, failed allocation), frames with a data size that does not match the pixel format (for example compressed frames without dimensions) were copied without data.<br />- `release()` resets the pointer to data.<br />- `cloneTo(...)` releases the memory of the destination frame (memory leak).<br />- Compare operators and `serialize(...)` do not dereference a null data pointer.<br />- Frame sizes are calculated in 64 bit, sizes that do not fit in an int give an empty frame.<br />- The copy operator and `deserialize(...)` do not change the frame if the memory can not be allocated.<br />- Version of the serialization format is independent of the library version (format 5.0, compatible with 5.0.x).<br />- Interface not changed.<br />- Tests extended. |
 
 
 
@@ -312,14 +313,14 @@ std::cout << "Frame class version: " << cr::video::Frame::getVersion() << std::e
 Console output:
 
 ```bash
-Frame class version: 5.0.9
+Frame class version: 5.1.0
 ```
 
 
 
 ## Copy operator
 
-Copy operator **"="** intended to full copy of frame data. Operator copies frame data and frame attributes. Operator declaration:
+Copy operator **"="** intended to full copy of frame data. Operator copies frame data and frame attributes. If the source frame has the same dimensions and pixel format and the data of the destination frame is large enough, the data is copied into the existing memory, otherwise new memory is allocated. If the memory can not be allocated the operator throws `std::bad_alloc` and the destination frame is not changed. Operator declaration:
 
 ```cpp
 Frame& operator= (const Frame& src);
@@ -339,7 +340,7 @@ cr::video::Frame image2 = image1;
 
 ## cloneTo method
 
-The **cloneTo(...)** method designed to clone frame object without copy of data. Method copies frame attributes and initialize pointer to frame data without copy of data. Method declaration:
+The **cloneTo(...)** method designed to clone frame object without copy of data. Method copies frame attributes and initialize pointer to frame data without copy of data. The memory that the destination frame owned before the call is released. The destination frame does not own the data: it stays valid only as long as the source frame keeps its data. Method declaration:
 
 ```cpp
 void cloneTo(Frame& dst);
@@ -432,7 +433,7 @@ else
 
 ## release method
 
-The **release()** method intended to release allocated memory and reset frame attributes. Method declaration:
+The **release()** method intended to release allocated memory and reset frame attributes (the pointer to data is reset too, also for a frame that does not own its data, for example a clone). Method declaration:
 
 ```cpp
 void release();
@@ -452,7 +453,7 @@ image1.release();
 
 ## serialize method
 
-The **serialize(...)** method intended for serialization of Frame object with data. Sometimes the user needs to serialize an object in order to transfer or write it somewhere. Method declaration:
+The **serialize(...)** method intended for serialization of Frame object with data. Sometimes the user needs to serialize an object in order to transfer or write it somewhere. The size of the buffer must be at least the frame data size + 26 bytes. The serialized data starts with the version of the serialization format (5.0 in all versions 5.0.x and 5.1.x of the class) followed by the width, height, FOURCC, data size, frame ID and source ID (4 bytes each, byte order of the platform) and the frame data. A frame without data is serialized without data. Method declaration:
 
 ```cpp
 void serialize(uint8_t* data, int& size);
@@ -461,7 +462,7 @@ void serialize(uint8_t* data, int& size);
 | Parameter | Description              |
 | --------- | ------------------------ |
 | data      | Pointer to data buffer.  |
-| size      | Size of serialized data. |
+| size      | Size of serialized data (zero if nothing was written). |
 
 Example:
 
@@ -470,7 +471,7 @@ Example:
 Frame srcFrame(640, 480, Fourcc::BGR24);
 
 // Fill source frame.
-for (uint32_t i = 0; i < srcFrame.size; ++i)
+for (int i = 0; i < srcFrame.size; ++i)
      srcFrame.data[i] = (uint8_t)(rand() % 255);
 
 // Serialize data.
@@ -483,7 +484,7 @@ srcFrame.serialize(data, size);
 
 ## deserialize method
 
-The **deserialize(...)** method intended for deserialization of Frame object. Method declaration:
+The **deserialize(...)** method intended for deserialization of Frame object. The method checks the version of the serialization format, the pixel format, the size of the frame and the size of the data. If the data is not valid or the memory can not be allocated the method returns FALSE and the frame is not changed. Method declaration:
 
 ```cpp
 bool deserialize(uint8_t* data, int size);
@@ -504,7 +505,7 @@ Frame srcFrame(640, 480, Fourcc::BGR24);
 Frame dstFrame(1280, 720, Fourcc::YUV24);
 
 // Fill source frame.
-for (uint32_t i = 0; i < srcFrame.size; ++i)
+for (int i = 0; i < srcFrame.size; ++i)
      srcFrame.data[i] = (uint8_t)(rand() % 255);
 
 // Serialize data.
@@ -552,7 +553,7 @@ if (srcFrame.frameId != dstFrame.frameId)
 }
 
 // Compare frame data.
-for (uint32_t i = 0; i < srcFrame.size; ++i)
+for (int i = 0; i < srcFrame.size; ++i)
 {
     if (srcFrame.data[i] != dstFrame.data[i])
     {
@@ -570,17 +571,17 @@ Frame class public members declaration:
 
 ```cpp
 /// Frame width (pixels).
-uint32_t width{0};
+int width{0};
 /// Frame height (pixels).
-uint32_t height{0};
+int height{0};
 /// FOURCC code of data format.
 Fourcc fourcc{Fourcc::YUV24};
 /// Frame data size (bytes).
-uint32_t size{0};
+int size{0};
 /// ID of frame.
-uint32_t frameId{0};
+int frameId{0};
 /// ID of video source.
-uint32_t sourceId{0};
+int sourceId{0};
 /// Pointer to frame data.
 uint8_t* data{nullptr};
 ```
