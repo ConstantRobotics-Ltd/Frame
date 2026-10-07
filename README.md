@@ -4,7 +4,7 @@
 
 # **Frame C++ class**
 
-**v5.1.0**
+**v5.1.1**
 
 
 
@@ -34,7 +34,7 @@
 
 # Overview
 
-**Frame** class is basic class for other projects which describes video frame. Main file **Frame.h** contains declaration of **Frame** class and **Fourcc** enum which describes pixel formats supported by **Frame** class. The library doesn't have any third party dependencies. It uses C++17 standard. The library is licensed under the **Apache 2.0** license.
+**Frame** class is basic class for other projects which describes video frame. Main file **Frame.h** contains declaration of **Frame** class and **Fourcc** enum which describes pixel formats supported by **Frame** class. The library doesn't have any third party dependencies. It uses C++17 standard.
 
 
 
@@ -59,6 +59,7 @@
 | 5.0.8   | 16.04.2024   | - Documentation updated.<br />- Method signatures optimizes. |
 | 5.0.9   | 05.07.2024   | - CMake updated.                                             |
 | 5.1.0   | 04.10.2026   | - Review of the class, errors fixed: <br />- `deserialize(...)` could write beyond the allocated memory (the data size of the serialized data is larger than the pixel format needs), could free the memory twice (unknown pixel format) and used negative or overflowing sizes.<br />- Copy operator and copy constructor: memory freed twice or used after it was freed (empty source, size 0, failed allocation), frames with a data size that does not match the pixel format (for example compressed frames without dimensions) were copied without data.<br />- `release()` resets the pointer to data.<br />- `cloneTo(...)` releases the memory of the destination frame (memory leak).<br />- Compare operators and `serialize(...)` do not dereference a null data pointer.<br />- Frame sizes are calculated in 64 bit, sizes that do not fit in an int give an empty frame.<br />- The copy operator and `deserialize(...)` do not change the frame if the memory can not be allocated.<br />- Version of the serialization format is independent of the library version (format 5.0, compatible with 5.0.x).<br />- Interface not changed.<br />- Tests extended. |
+| 5.1.1   | 06.10.2026   | - `deserialize(...)`: use of released memory fixed if the serialized data is a part of the memory of the frame (the old memory was released before the data was copied), overlapping copy fixed if the memory of the frame is reused.<br />- `deserialize(...)` returns FALSE (does not throw `std::bad_alloc`) if the memory can not be allocated, as documented.<br />- Copy operator: overlapping copy fixed if the data of the source is a part of the memory of the destination.<br />- New memory is filled with zeros only behind the copied data.<br />- `MAKE_FOURCC_CODE` macro uses `static_cast`.<br />- Documentation: memory ownership and memory size rules.<br />- Tests extended (aliasing, all pixel formats), test data without `rand()`.<br />- Interface and class layout not changed (compatible with 5.0.x). |
 
 
 
@@ -87,7 +88,7 @@ The **Frame.h** file contains **Fourcc** enum which defines supported pixel form
 
 ```cpp
 /// Macro to make FOURCC code.
-#define MAKE_FOURCC_CODE(a,b,c,d) ((uint32_t)(((d)<<24)|((c)<<16)|((b)<<8)|(a)))
+#define MAKE_FOURCC_CODE(a,b,c,d) (static_cast<uint32_t>(((d)<<24)|((c)<<16)|((b)<<8)|(a)))
 
 /**
  * @brief FOURCC codes enum.
@@ -148,6 +149,10 @@ enum class Fourcc
 
 
 # Frame class description
+
+**Memory ownership.** A frame owns the memory that the class allocated (constructor with parameters, copy-constructor, copy operator and **deserialize(...)**) and releases it in **release()** and in the destructor. A clone (**cloneTo(...)**) and a frame whose **data** pointer was set by the user do not own the data: the data must stay valid as long as the frame uses it. Do not assign the **data** pointer of a frame that owns memory (call **release()** first), otherwise the memory leaks.
+
+**Memory size.** When the class allocates memory, it allocates max(**size**, pixel format size) bytes for the width, height and pixel format of the frame and fills the memory behind the copied data with zeros. The pixel format size is width x height x 3 (RGB24, BGR24, YUV24), width x (height + height / 2) (NV12, NV21, YU12, YV12), width x height x 2 (YUYV, UYVY), width x height (GRAY) or width x height x 4 (JPEG, H264, HEVC: maximum size of compressed data). Frames whose data size does not fit in an **int** are not supported (the constructor creates an empty frame, **deserialize(...)** returns FALSE). The **size** field is the number of valid bytes of the data.
 
 
 
@@ -313,14 +318,14 @@ std::cout << "Frame class version: " << cr::video::Frame::getVersion() << std::e
 Console output:
 
 ```bash
-Frame class version: 5.1.0
+Frame class version: 5.1.1
 ```
 
 
 
 ## Copy operator
 
-Copy operator **"="** intended to full copy of frame data. Operator copies frame data and frame attributes. If the source frame has the same dimensions and pixel format and the data of the destination frame is large enough, the data is copied into the existing memory, otherwise new memory is allocated. If the memory can not be allocated the operator throws `std::bad_alloc` and the destination frame is not changed. Operator declaration:
+Copy operator **"="** intended to full copy of frame data. Operator copies frame data and frame attributes. If the destination frame has memory, the same dimensions and pixel format as the source and its data size is not smaller than the data size of the source, the data is copied into the existing memory (also if the destination does not own the memory, for example a clone: the data of the original frame changes then), otherwise new memory is allocated. The data of the source can be a part of the memory of the destination. If the memory can not be allocated the operator throws `std::bad_alloc` and the destination frame is not changed. Operator declaration:
 
 ```cpp
 Frame& operator= (const Frame& src);
@@ -453,7 +458,7 @@ image1.release();
 
 ## serialize method
 
-The **serialize(...)** method intended for serialization of Frame object with data. Sometimes the user needs to serialize an object in order to transfer or write it somewhere. The size of the buffer must be at least the frame data size + 26 bytes. The serialized data starts with the version of the serialization format (5.0 in all versions 5.0.x and 5.1.x of the class) followed by the width, height, FOURCC, data size, frame ID and source ID (4 bytes each, byte order of the platform) and the frame data. A frame without data is serialized without data. Method declaration:
+The **serialize(...)** method intended for serialization of Frame object with data. Sometimes the user needs to serialize an object in order to transfer or write it somewhere. The method can not check the size of the buffer: it must be at least the frame data size + 26 bytes and must not overlap the data of the frame. The serialized data starts with the version of the serialization format (5.0 in all versions 5.0.x and 5.1.x of the class) followed by the width, height, FOURCC, data size, frame ID and source ID (4 bytes each, byte order of the platform) and the frame data. A frame without data is serialized without data. Method declaration:
 
 ```cpp
 void serialize(uint8_t* data, int& size);
@@ -484,7 +489,7 @@ srcFrame.serialize(data, size);
 
 ## deserialize method
 
-The **deserialize(...)** method intended for deserialization of Frame object. The method checks the version of the serialization format, the pixel format, the size of the frame and the size of the data. If the data is not valid or the memory can not be allocated the method returns FALSE and the frame is not changed. Method declaration:
+The **deserialize(...)** method intended for deserialization of Frame object. The method checks the version of the serialization format, the pixel format, the size of the frame and the size of the data. If the data is not valid or the memory can not be allocated the method returns FALSE and the frame is not changed. The memory of the frame is reused like in the copy operator. The serialized data can be a part of the memory of the frame. Untrusted serialized data can describe frames up to 2 GB (the maximum the class supports): check the width and height in the header (bytes 2-9) before if your application needs a lower limit. Method declaration:
 
 ```cpp
 bool deserialize(uint8_t* data, int size);

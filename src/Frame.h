@@ -12,7 +12,7 @@ namespace video
 {
 
 /// Macro to make FOURCC code.
-#define MAKE_FOURCC_CODE(a,b,c,d) ((uint32_t)(((d)<<24)|((c)<<16)|((b)<<8)|(a)))
+#define MAKE_FOURCC_CODE(a,b,c,d) (static_cast<uint32_t>(((d)<<24)|((c)<<16)|((b)<<8)|(a)))
 
 /**
  * @brief FOURCC codes enum.
@@ -64,6 +64,22 @@ enum class Fourcc
 
 /**
  * @brief Video frame class.
+ *
+ * Memory ownership: a frame owns the memory that the class allocated (the
+ * constructor with parameters, the copy constructor, operator "=" and
+ * deserialize(...)) and releases it in release() and in the destructor. A
+ * clone (cloneTo(...)) and a frame whose data pointer was set by the user do
+ * not own the data: the data must stay valid as long as the frame uses it.
+ * Do not assign the data pointer of a frame that owns memory (call release()
+ * first), otherwise the memory leaks.
+ *
+ * Memory size: when the class allocates memory, it allocates
+ * max(size, pixel format size) bytes for the width, height and pixel format
+ * of the frame (the memory is filled with zeros). The pixel format size is
+ * width * height * 3 (RGB24, BGR24, YUV24), width * (height + height / 2)
+ * (NV12, NV21, YU12, YV12), width * height * 2 (YUYV, UYVY), width * height
+ * (GRAY) or width * height * 4 (JPEG, H264, HEVC: maximum size of compressed
+ * data). Frames whose data size does not fit in an int are not supported.
  */
 class Frame
 {
@@ -82,20 +98,23 @@ public:
 
     /**
      * @brief Class constructor with parameters. This constructor allocates
-     * memory according to frame size and format. A frame with an unknown
-     * format, a negative width or height or a data size that does not fit in
-     * an int is empty (no memory is allocated).
+     * memory according to frame size and format and fills it with zeros. A
+     * frame with an unknown format, a negative width or height or a data size
+     * that does not fit in an int is empty (no memory is allocated). The
+     * constructor throws std::bad_alloc if the memory can not be allocated.
      * @param width Frame width (pixels).
      * @param height Frame height (pixels).
      * @param fourcc FOURCC code of data format.
      * @param size Frame data size (bytes).
      * @param data Pointer to data buffer. If pointer to data provided the class
-     * will copy data to internal buffer.
+     * will copy data to internal buffer (only if the size is not larger than
+     * the memory of the frame, the data size of the frame is the size then).
      */
     Frame(int width, int height, Fourcc fourcc, int size = 0, uint8_t* data = nullptr);
 
     /**
-     * @brief Copy class constructor.
+     * @brief Copy class constructor. Makes a full copy of the data (see
+     * operator "=").
      * @param src Source class object.
      */
     Frame(Frame& src);
@@ -106,9 +125,13 @@ public:
     ~Frame();
 
     /**
-     * @brief Operator "=". Operator makes full copy of data. If the memory
-     * can not be allocated the method throws std::bad_alloc and the frame is
-     * not changed.
+     * @brief Operator "=". Operator makes full copy of data. If the frame has
+     * memory, the same width, height and pixel format as the source and its
+     * data size is not smaller than the data size of the source, the data is
+     * copied into the existing memory (also if the frame does not own it, for
+     * example a clone: the data of the original frame changes then).
+     * Otherwise new memory is allocated. If the memory can not be allocated
+     * the method throws std::bad_alloc and the frame is not changed.
      * @param src Source frame object.
      */
     Frame& operator= (const Frame& src);
@@ -146,8 +169,9 @@ public:
      * @brief Serialize frame data. The method will encode data with params.
      * The format of the serialized data is version 5.0 in all versions 5.0.x
      * and 5.1.x of the class.
-     * @param data Pointer to data buffer.
-     *             Buffer size must be >= frame data size + 26.
+     * @param data Pointer to data buffer. The method can not check the size
+     *             of the buffer: it must be >= frame data size + 26 bytes and
+     *             must not overlap the data of the frame.
      * @param size Size of serialized data. Zero if nothing was written (no
      *             buffer or data too large).
      */
@@ -155,7 +179,9 @@ public:
 
     /**
      * @brief Deserialize data to frame object. The frame is not changed if
-     * the data is not valid.
+     * the data is not valid or the memory can not be allocated. The
+     * serialized data can be a part of the memory of the frame. The memory
+     * of the frame is reused like in operator "=".
      * @param data Pointer to serialized data.
      * @param size Size of serialized data.
      * @return TRUE if the data deserialized or FALSE.
@@ -168,7 +194,7 @@ public:
     int height{0};
     /// FOURCC code of data format.
     Fourcc fourcc{Fourcc::YUV24};
-    /// Frame data size (bytes).
+    /// Frame data size (bytes): number of valid bytes of the data.
     int size{0};
     /// ID of frame.
     int frameId{0};

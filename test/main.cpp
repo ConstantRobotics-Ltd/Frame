@@ -1,5 +1,5 @@
 #include <climits>
-#include <cstdlib>
+#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <memory>
@@ -47,6 +47,15 @@ bool constructorEdgeCasesTest();
 /// Serialization test with invalid and hostile data.
 bool serializationEdgeCasesTest();
 
+/// Copy and deserialization of data that is a part of the frame memory.
+bool aliasingTest();
+
+/// Sizes, copy, clone and serialization of all pixel formats.
+bool formatsTest();
+
+/// Byte number i of the test data.
+uint8_t testByte(int i);
+
 
 
 /// Check a condition inside a test function.
@@ -88,7 +97,9 @@ int main(int argc, char** argv)
         {"cloneEdgeCases", cloneEdgeCasesTest},
         {"compareEdgeCases", compareEdgeCasesTest},
         {"constructorEdgeCases", constructorEdgeCasesTest},
-        {"serializationEdgeCases", serializationEdgeCasesTest}};
+        {"serializationEdgeCases", serializationEdgeCasesTest},
+        {"aliasing", aliasingTest},
+        {"formats", formatsTest}};
 
     int failed = 0;
     for (const TestCase& test : tests)
@@ -106,6 +117,16 @@ int main(int argc, char** argv)
     }
 
     return failed == 0 ? 0 : 1;
+}
+
+
+
+uint8_t testByte(int i)
+{
+    // Multiplicative hash of the index: deterministic data without a short
+    // period.
+    const uint32_t value = static_cast<uint32_t>(i) * 2654435761u;
+    return static_cast<uint8_t>(value >> 24);
 }
 
 
@@ -192,7 +213,7 @@ bool constructorTest()
     unique_ptr<uint8_t[]> testBuffer(new uint8_t[640 * 480 * 3]);
     uint8_t* testData = testBuffer.get();
     for (int i = 0; i < 640 * 480 * 3; ++i)
-        testData[i] = (uint8_t)(rand() % 255);
+        testData[i] = testByte(i);
     Frame frame3(640, 480, Fourcc::YUV24, 640 * 480 * 3, testData);
 
     // Check parameters.
@@ -257,7 +278,7 @@ bool copyTest()
 
     // Fill frame data.
     for (int i = 0; i < frame3.size; ++i)
-        frame3.data[i] = (uint8_t)(rand() % 255);
+        frame3.data[i] = testByte(i);
 
     // Copy frame.
     frame1 = frame3;
@@ -356,7 +377,7 @@ bool cloneTest()
 
     // Fill frame data.
     for (int i = 0; i < frame3->size; ++i)
-        frame3->data[i] = (uint8_t)(rand() % 255);
+        frame3->data[i] = testByte(i);
 
     // Clone frame.
     frame3->cloneTo(frame1);
@@ -453,7 +474,7 @@ bool compareTest()
 
     // Fill frame data.
     for (int i = 0; i < frame3.size; ++i)
-        frame3.data[i] = (uint8_t)(rand() % 255);
+        frame3.data[i] = testByte(i);
 
     // Copy frame.
     frame1 = frame3;
@@ -497,7 +518,7 @@ bool serializationTest()
 
     // Fill source frame.
     for (int i = 0; i < srcFrame.size; ++i)
-        srcFrame.data[i] = (uint8_t)(rand() % 255);
+        srcFrame.data[i] = testByte(i);
 
     // Serialize data.
     unique_ptr<uint8_t[]> buffer(new uint8_t[1920 * 1080 * 4]);
@@ -616,7 +637,7 @@ bool copyEdgeCasesTest()
     // A frame with memory is assigned to the empty frame again.
     Frame frame2(320, 240, Fourcc::NV12);
     for (int i = 0; i < frame2.size; ++i)
-        frame2.data[i] = (uint8_t)(i * 7);
+        frame2.data[i] = static_cast<uint8_t>(i * 7);
     frame1 = frame2;
     CHECK(frame1 == frame2)
     CHECK(frame1.data != frame2.data)
@@ -624,7 +645,7 @@ bool copyEdgeCasesTest()
     // A compressed frame without dimensions (the data is not owned).
     uint8_t packet[1000];
     for (int i = 0; i < 1000; ++i)
-        packet[i] = (uint8_t)(i * 13);
+        packet[i] = static_cast<uint8_t>(i * 13);
     Frame compressed;
     compressed.fourcc = Fourcc::H264;
     compressed.data = packet;
@@ -667,7 +688,7 @@ bool copyEdgeCasesTest()
 
     // A frame with data of a format that is not known.
     Frame unknown;
-    unknown.fourcc = (Fourcc)0x12345678;
+    unknown.fourcc = static_cast<Fourcc>(0x12345678);
     unknown.width = 10;
     unknown.height = 10;
     unknown.data = packet;
@@ -678,7 +699,7 @@ bool copyEdgeCasesTest()
     CHECK(copy3.data != nullptr && copy3.data != packet)
     CHECK(memcmp(copy3.data, packet, 100) == 0)
     CHECK(copy3.width == 10 && copy3.height == 10)
-    CHECK(copy3.fourcc == (Fourcc)0x12345678)
+    CHECK(copy3.fourcc == static_cast<Fourcc>(0x12345678))
 
     // A frame with a size but without data (the destination gets zeros) and a
     // frame with a negative size.
@@ -707,11 +728,11 @@ bool copyEdgeCasesTest()
     // The destination is a clone: its data (not owned) must stay untouched
     // and must not be released.
     Frame owner(64, 64, Fourcc::GRAY);
-    memset(owner.data, 0x11, owner.size);
+    memset(owner.data, 0x11, static_cast<size_t>(owner.size));
     Frame cloned;
     owner.cloneTo(cloned);
     Frame source(32, 32, Fourcc::GRAY);
-    memset(source.data, 0x22, source.size);
+    memset(source.data, 0x22, static_cast<size_t>(source.size));
     cloned = source;
     CHECK(cloned.data != owner.data)
     CHECK(cloned.size == 32 * 32)
@@ -769,7 +790,7 @@ bool cloneEdgeCasesTest()
     // Assignment of a frame with other dimensions: the destination gets its
     // own data, the data of the source frame is not touched.
     Frame other(8, 8, Fourcc::GRAY);
-    memset(other.data, 0x33, other.size);
+    memset(other.data, 0x33, static_cast<size_t>(other.size));
     destination = other;
     CHECK(destination.data != source.data)
     CHECK(destination == other)
@@ -852,7 +873,7 @@ bool constructorEdgeCasesTest()
     CHECK(huge2.data == nullptr && huge2.size == 0)
     Frame huge3(46341, 46341, Fourcc::GRAY);
     CHECK(huge3.data == nullptr && huge3.size == 0)
-    Frame unknown(10, 10, (Fourcc)0x12345678);
+    Frame unknown(10, 10, static_cast<Fourcc>(0x12345678));
     CHECK(unknown.data == nullptr && unknown.size == 0 && unknown.width == 0)
 
     // The largest frame that can be described.
@@ -906,12 +927,12 @@ bool serializationEdgeCasesTest()
     pos = 2;
     put(2);
     put(2);
-    put((int)Fourcc::GRAY);
+    put(static_cast<int>(Fourcc::GRAY));
     put(4);
     put(3);
     put(4);
     for (int i = 0; i < 4; ++i)
-        blob[pos + i] = (uint8_t)(10 + i);
+        blob[pos + i] = static_cast<uint8_t>(10 + i);
 
     Frame frame1;
     CHECK(frame1.deserialize(blob, 26 + 4))
@@ -930,7 +951,7 @@ bool serializationEdgeCasesTest()
 
     // Invalid parameters: the frame is not changed.
     Frame frame2(4, 4, Fourcc::GRAY);
-    memset(frame2.data, 0x5A, frame2.size);
+    memset(frame2.data, 0x5A, static_cast<size_t>(frame2.size));
     uint8_t bad[64];
     CHECK(!frame2.deserialize(nullptr, 30))
     CHECK(!frame2.deserialize(blob, 25))
@@ -958,7 +979,7 @@ bool serializationEdgeCasesTest()
     value = 65535;
     memcpy(&bad[2], &value, 4);
     memcpy(&bad[6], &value, 4);
-    value = (int)Fourcc::BGR24;
+    value = static_cast<int>(Fourcc::BGR24);
     memcpy(&bad[10], &value, 4);
     CHECK(!frame2.deserialize(bad, 30))
     memcpy(bad, blob, 30);
@@ -980,7 +1001,7 @@ bool serializationEdgeCasesTest()
     value = 1;
     memcpy(&large[2], &value, 4);
     memcpy(&large[6], &value, 4);
-    value = (int)Fourcc::BGR24;
+    value = static_cast<int>(Fourcc::BGR24);
     memcpy(&large[10], &value, 4);
     value = 4096;
     memcpy(&large[14], &value, 4);
@@ -1002,7 +1023,7 @@ bool serializationEdgeCasesTest()
     value = 0;
     memcpy(&large[2], &value, 4);
     memcpy(&large[6], &value, 4);
-    value = (int)Fourcc::JPEG;
+    value = static_cast<int>(Fourcc::JPEG);
     memcpy(&large[10], &value, 4);
     value = 100;
     memcpy(&large[14], &value, 4);
@@ -1044,10 +1065,10 @@ bool serializationEdgeCasesTest()
     {
         Frame src(16, 8, format);
         for (int i = 0; i < src.size; ++i)
-            src.data[i] = (uint8_t)(i * 31 + 5);
+            src.data[i] = static_cast<uint8_t>(i * 31 + 5);
         src.frameId = 11;
         src.sourceId = 12;
-        std::unique_ptr<uint8_t[]> buffer(new uint8_t[src.size + 26]);
+        std::unique_ptr<uint8_t[]> buffer(new uint8_t[static_cast<size_t>(src.size) + 26]);
         int serializedSize = 0;
         src.serialize(buffer.get(), serializedSize);
         CHECK(serializedSize == src.size + 26)
@@ -1055,6 +1076,197 @@ bool serializationEdgeCasesTest()
         CHECK(dst.deserialize(buffer.get(), serializedSize))
         CHECK(dst == src)
     }
+
+    return true;
+}
+
+
+
+/// Copy and deserialization of data that is a part of the frame memory.
+bool aliasingTest()
+{
+    // Frame that is serialized below.
+    Frame original(8, 6, Fourcc::GRAY);
+    for (int i = 0; i < original.size; ++i)
+        original.data[i] = testByte(i);
+    original.frameId = 21;
+    original.sourceId = 22;
+
+    // A frame that carries a serialized frame is deserialized into itself:
+    // other format and size, new memory.
+    Frame carrier(64, 64, Fourcc::JPEG);
+    int carrierSize = 0;
+    original.serialize(carrier.data, carrierSize);
+    CHECK(carrierSize == original.size + 26)
+    carrier.size = carrierSize;
+    CHECK(carrier.deserialize(carrier.data, carrier.size))
+    CHECK(carrier == original)
+    CHECK(carrier.data != original.data)
+
+    // The same format and size: the memory is reused, the data is moved.
+    Frame part(16, 16, Fourcc::GRAY);
+    for (int i = 0; i < part.size; ++i)
+        part.data[i] = testByte(i + 1000);
+    part.size = 200;
+    Frame packed(16, 16, Fourcc::GRAY);
+    uint8_t* packedMemory = packed.data;
+    int packedSize = 0;
+    part.serialize(packed.data, packedSize);
+    CHECK(packedSize == 226)
+    CHECK(packed.deserialize(packed.data, packedSize))
+    CHECK(packed.data == packedMemory)
+    CHECK(packed.size == 200)
+    CHECK(memcmp(packed.data, part.data, 200) == 0)
+
+    // The source of a copy is a part of the memory of the destination: the
+    // same format and size (memory reused).
+    Frame whole(16, 16, Fourcc::GRAY);
+    for (int i = 0; i < whole.size; ++i)
+        whole.data[i] = testByte(i);
+    uint8_t expected[100];
+    memcpy(expected, whole.data + 10, 100);
+    Frame view;
+    view.width = 16;
+    view.height = 16;
+    view.fourcc = Fourcc::GRAY;
+    view.data = whole.data + 10;
+    view.size = 100;
+    whole = view;
+    CHECK(whole.size == 100)
+    CHECK(memcmp(whole.data, expected, 100) == 0)
+
+    // The same with another frame size (new memory, the old memory is
+    // released after the copy).
+    Frame big(32, 32, Fourcc::GRAY);
+    for (int i = 0; i < big.size; ++i)
+        big.data[i] = testByte(i + 7);
+    memcpy(expected, big.data + 5, 64);
+    Frame subFrame;
+    subFrame.width = 8;
+    subFrame.height = 8;
+    subFrame.fourcc = Fourcc::GRAY;
+    subFrame.data = big.data + 5;
+    subFrame.size = 64;
+    big = subFrame;
+    CHECK(big.size == 64 && big.width == 8 && big.height == 8)
+    CHECK(memcmp(big.data, expected, 64) == 0)
+
+    // Deserialization into a clone of the same format and size writes into
+    // the memory of the original frame.
+    Frame owner(8, 6, Fourcc::GRAY);
+    Frame clone;
+    owner.cloneTo(clone);
+    uint8_t blob[26 + 48];
+    int blobSize = 0;
+    original.serialize(blob, blobSize);
+    CHECK(blobSize == 26 + 48)
+    CHECK(clone.deserialize(blob, blobSize))
+    CHECK(clone.data == owner.data)
+    CHECK(memcmp(owner.data, original.data, 48) == 0)
+
+    return true;
+}
+
+
+
+/// Sizes, copy, clone and serialization of all pixel formats.
+bool formatsTest()
+{
+    const Fourcc formats[] = {Fourcc::RGB24, Fourcc::BGR24, Fourcc::YUYV,  Fourcc::UYVY,
+                              Fourcc::GRAY,  Fourcc::YUV24, Fourcc::NV12,  Fourcc::NV21,
+                              Fourcc::YU12,  Fourcc::YV12,  Fourcc::JPEG,  Fourcc::H264,
+                              Fourcc::HEVC};
+    const int dimensions[][2] = {{1, 1}, {1, 7}, {3, 5}, {17, 9}, {2, 2}, {640, 1}, {33, 32}};
+    for (Fourcc format : formats)
+    {
+        for (const auto& dimension : dimensions)
+        {
+            const int w = dimension[0];
+            const int h = dimension[1];
+
+            // Size of the data of the pixel format.
+            int expectedSize = 0;
+            switch (format)
+            {
+            case Fourcc::RGB24:
+            case Fourcc::BGR24:
+            case Fourcc::YUV24:
+                expectedSize = w * h * 3;
+                break;
+            case Fourcc::NV12:
+            case Fourcc::NV21:
+            case Fourcc::YU12:
+            case Fourcc::YV12:
+                expectedSize = w * (h + h / 2);
+                break;
+            case Fourcc::YUYV:
+            case Fourcc::UYVY:
+                expectedSize = w * h * 2;
+                break;
+            case Fourcc::GRAY:
+                expectedSize = w * h;
+                break;
+            default:
+                expectedSize = w * h * 4;
+                break;
+            }
+
+            Frame src(w, h, format);
+            CHECK(src.size == expectedSize && src.data != nullptr)
+            CHECK(src.width == w && src.height == h && src.fourcc == format)
+            for (int i = 0; i < src.size; ++i)
+                src.data[i] = testByte(i + w * 100 + h);
+            src.frameId = w;
+            src.sourceId = h;
+
+            // Copy constructor and copy operator.
+            Frame copy(src);
+            CHECK(copy == src && copy.data != src.data)
+            Frame assigned(4, 4, Fourcc::RGB24);
+            assigned = src;
+            CHECK(assigned == src && assigned.data != src.data)
+
+            // Clone.
+            Frame clone(2, 2, Fourcc::GRAY);
+            src.cloneTo(clone);
+            CHECK(clone == src && clone.data == src.data)
+
+            // Serialization into a frame of another format.
+            unique_ptr<uint8_t[]> buffer(new uint8_t[static_cast<size_t>(src.size) + 26]);
+            int serializedSize = 0;
+            src.serialize(buffer.get(), serializedSize);
+            CHECK(serializedSize == src.size + 26)
+            Frame dst(5, 3, Fourcc::NV12);
+            CHECK(dst.deserialize(buffer.get(), serializedSize))
+            CHECK(dst == src)
+
+            // Constructor with data.
+            Frame withData(w, h, format, src.size, src.data);
+            CHECK(withData.size == src.size)
+            CHECK(memcmp(withData.data, src.data, static_cast<size_t>(src.size)) == 0)
+        }
+    }
+
+    // Compressed data larger than the pixel format size: copy, serialization
+    // and comparison use the data size.
+    unique_ptr<uint8_t[]> packet(new uint8_t[5000]);
+    for (int i = 0; i < 5000; ++i)
+        packet[static_cast<size_t>(i)] = testByte(i);
+    Frame compressed;
+    compressed.width = 8;
+    compressed.height = 8;
+    compressed.fourcc = Fourcc::HEVC;
+    compressed.data = packet.get();
+    compressed.size = 5000;
+    Frame copy(compressed);
+    CHECK(copy == compressed && copy.data != packet.get())
+    unique_ptr<uint8_t[]> buffer(new uint8_t[5026]);
+    int serializedSize = 0;
+    compressed.serialize(buffer.get(), serializedSize);
+    CHECK(serializedSize == 5026)
+    Frame dst(8, 8, Fourcc::HEVC);
+    CHECK(dst.deserialize(buffer.get(), serializedSize))
+    CHECK(dst == compressed)
 
     return true;
 }

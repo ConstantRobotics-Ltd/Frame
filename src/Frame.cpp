@@ -2,6 +2,7 @@
 #include "FrameVersion.h"
 #include <algorithm>
 #include <climits>
+#include <new>
 
 
 
@@ -23,6 +24,10 @@ constexpr int SERIALIZED_HEADER_SIZE{26};
 /// 5.0.x and 5.1.x of the library read and write format 5.0.
 constexpr uint8_t SERIALIZED_FORMAT_MAJOR{5};
 constexpr uint8_t SERIALIZED_FORMAT_MINOR{0};
+
+// The serialized data stores the integer fields with 4 bytes each.
+static_assert(sizeof(int) == 4 && sizeof(uint32_t) == 4,
+              "The serialization format needs 4-byte integers");
 
 
 
@@ -118,23 +123,26 @@ Frame::Frame(int _width,
         return;
     size = static_cast<int>(dataSize);
 
+    // The data of the user is copied if it fits in the frame, the rest of the
+    // memory is filled with zeros.
+    const bool copyData = (_data != nullptr && _size >= 0 && _size <= size);
+    const int copySize = copyData ? _size : 0;
+
     // Allocate memory.
     if (size > 0)
     {
         data = new uint8_t[static_cast<size_t>(size)];
-        memset(data, 0, static_cast<size_t>(size));
         m_isAllocated = true;
+        if (copySize > 0)
+            memcpy(data, _data, static_cast<size_t>(copySize));
+        memset(data + copySize, 0, static_cast<size_t>(size - copySize));
     }
 
-    // Copy data.
-    if (_data != nullptr && _size >= 0 && _size <= size)
-    {
-        if (_size > 0)
-            memcpy(data, _data, static_cast<size_t>(_size));
+    // The size of the data of the user is the data size of the frame.
+    if (copyData)
         size = _size;
-    }
 
-    // Copy atributes.
+    // Copy attributes.
     width = _width;
     height = _height;
     fourcc = _fourcc;
@@ -180,10 +188,12 @@ Frame &Frame::operator= (const Frame &src)
         fourcc == src.fourcc &&
         srcSize <= size)
     {
-        // Copy frame data to the buffer that is already there. The size field
-        // of this frame tells how many bytes of the buffer can be used.
+        // Copy frame data to the buffer that is already there (also if this
+        // frame does not own it, for example a clone). The size field of this
+        // frame tells how many bytes of the buffer can be used. The data of
+        // the source can be a part of this buffer: memmove.
         if (copySize > 0 && data != src.data)
-            memcpy(data, src.data, static_cast<size_t>(copySize));
+            memmove(data, src.data, static_cast<size_t>(copySize));
         size = srcSize;
     }
     else
@@ -200,16 +210,17 @@ Frame &Frame::operator= (const Frame &src)
         if (capacity > 0)
         {
             newData = new uint8_t[static_cast<size_t>(capacity)];
-            memset(newData, 0, static_cast<size_t>(capacity));
             if (copySize > 0)
                 memcpy(newData, src.data, static_cast<size_t>(copySize));
+            memset(newData + copySize, 0,
+                   static_cast<size_t>(capacity - copySize));
         }
 
         // Release the old buffer (the source can use it, so after the copy).
         if (m_isAllocated)
             delete[] data;
 
-        // Copy atributes.
+        // Copy attributes.
         width = src.width;
         height = src.height;
         fourcc = src.fourcc;
@@ -247,7 +258,7 @@ void Frame::cloneTo(Frame& dst)
     dst.frameId = frameId;
     dst.sourceId = sourceId;
 
-    // Copy other atributes.
+    // Copy other attributes.
     dst.width = width;
     dst.height = height;
     dst.fourcc = fourcc;
@@ -265,7 +276,7 @@ bool Frame::operator==(Frame &src)
     if (this == &src)
         return true;
 
-    // Check frame atributes.
+    // Check frame attributes.
     if (width != src.width ||
         height != src.height ||
         fourcc != src.fourcc ||
@@ -406,22 +417,38 @@ bool Frame::deserialize(uint8_t* _data, int _size)
     if (pixelSize < 0)
         return false;
 
+    // The serialized data can be a part of the memory of this frame (a frame
+    // that carries a serialized frame is deserialized into itself): the data
+    // is moved, and a new buffer is filled before the old one is released.
+    const uint8_t* payload = &_data[pos];
+
     // Check size and pixel format.
-    uint8_t* newData = nullptr;
-    if (data == nullptr ||
-        width != w ||
-        height != h ||
-        fourcc != format ||
-        s > size)
+    if (data != nullptr &&
+        width == w &&
+        height == h &&
+        fourcc == format &&
+        s <= size)
+    {
+        // Copy the data to the buffer that is already there (also if this
+        // frame does not own it, for example a clone).
+        if (s > 0)
+            memmove(data, payload, static_cast<size_t>(s));
+    }
+    else
     {
         // Allocate memory first: if the allocation fails the frame is not
         // changed. The buffer is large enough for the data of the blob also
         // if it is larger than the pixel format needs.
         const int64_t capacity = max<int64_t>(pixelSize, s);
+        uint8_t* newData = nullptr;
         if (capacity > 0)
         {
-            newData = new uint8_t[static_cast<size_t>(capacity)];
-            memset(newData, 0, static_cast<size_t>(capacity));
+            newData = new (nothrow) uint8_t[static_cast<size_t>(capacity)];
+            if (newData == nullptr)
+                return false;
+            if (s > 0)
+                memcpy(newData, payload, static_cast<size_t>(s));
+            memset(newData + s, 0, static_cast<size_t>(capacity - s));
         }
 
         // Release memory.
@@ -431,17 +458,13 @@ bool Frame::deserialize(uint8_t* _data, int _size)
         m_isAllocated = (newData != nullptr);
     }
 
-    // Copy atributes.
+    // Copy attributes.
     width = w;
     height = h;
     fourcc = format;
     size = s;
     frameId = fId;
     sourceId = sId;
-
-    // Copy data.
-    if (s > 0)
-        memcpy(data, &_data[pos], static_cast<size_t>(s));
 
     return true;
 }
