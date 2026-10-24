@@ -161,9 +161,7 @@ enum class Fourcc
 **Frame.h** file contains **Frame** class declaration. Frame class declaration:
 
 ```cpp
-namespace cr
-{
-namespace video
+namespace rapidpixel
 {
 class Frame
 {
@@ -221,7 +219,6 @@ public:
     uint8_t* data{nullptr};
 };
 }
-}
 ```
 
 
@@ -256,13 +253,13 @@ Example of frame initialization:
 
 ```cpp
 // Frame filled by 0.
-cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
+rapidpixel::Frame image1(640, 480, rapidpixel::Fourcc::RGB24);
 
 // Copy.
-cr::video::Frame image2 = cr::video::Frame(640, 480, cr::video::Fourcc::YUV24);
+rapidpixel::Frame image2 = rapidpixel::Frame(640, 480, rapidpixel::Fourcc::YUV24);
 
 // Init by external data. Data will be copied.
-cr::video::Frame image3(640, 480, cr::video::Fourcc::BGR24, 921600, externalDataBuffer);
+rapidpixel::Frame image3(640, 480, rapidpixel::Fourcc::BGR24, 921600, externalDataBuffer);
 
 // Init frame attributes manually.
 Frame image4;
@@ -270,10 +267,10 @@ image4.data = externalDataBuffer;
 image4.width = 640;
 image4.height = 480;
 image4.size = image4.width * image4.height * 3;
-image4.fourcc = cr::video::Fourcc::BGR24;
+image4.fourcc = rapidpixel::Fourcc::BGR24;
 
 // Dynamic allocation.
-cr::video::Frame* image5 = new cr::video::Frame(640, 480, cr::video::Fourcc::YUV24);
+rapidpixel::Frame* image5 = new rapidpixel::Frame(640, 480, rapidpixel::Fourcc::YUV24);
 ```
 
 
@@ -290,13 +287,13 @@ Example of frame initialization:
 
 ```cpp
 // Frame filled by 0.
-cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
+rapidpixel::Frame image1(640, 480, rapidpixel::Fourcc::RGB24);
 
 // Copy-constructor.
-cr::video::Frame image2(image1);
+rapidpixel::Frame image2(image1);
 
 // Copy-constructor.
-cr::video::Frame image3 = cr::video::Frame(image1);
+rapidpixel::Frame image3 = rapidpixel::Frame(image1);
 ```
 
 
@@ -312,7 +309,7 @@ static std::string getVersion();
 Method can be used without **Frame** class instance. Example:
 
 ```cpp
-std::cout << "Frame class version: " << cr::video::Frame::getVersion() << std::endl;
+std::cout << "Frame class version: " << rapidpixel::Frame::getVersion() << std::endl;
 ```
 
 Console output:
@@ -335,10 +332,10 @@ Example:
 
 ```cpp
 // Frame filled by 0.
-cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
+rapidpixel::Frame image1(640, 480, rapidpixel::Fourcc::RGB24);
 
 // Make copy.
-cr::video::Frame image2 = image1;
+rapidpixel::Frame image2 = image1;
 ```
 
 
@@ -359,10 +356,10 @@ Example:
 
 ```cpp
 // Frame filled by 0.
-cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
+rapidpixel::Frame image1(640, 480, rapidpixel::Fourcc::RGB24);
 
 // Clone.
-cr::video::Frame image2;
+rapidpixel::Frame image2;
 image1.cloneTo(image2);
 ```
 
@@ -382,8 +379,8 @@ Example:
 
 ```cpp
 // Frame filled by 0.
-cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
-cr::video::Frame image2(640, 480, cr::video::Fourcc::RGB24);
+rapidpixel::Frame image1(640, 480, rapidpixel::Fourcc::RGB24);
+rapidpixel::Frame image2(640, 480, rapidpixel::Fourcc::RGB24);
 
 // Compare.
 if (image1 == image2)
@@ -415,8 +412,8 @@ Example:
 
 ```cpp
 // Frame filled by 0.
-cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
-cr::video::Frame image2(640, 480, cr::video::Fourcc::RGB24);
+rapidpixel::Frame image1(640, 480, rapidpixel::Fourcc::RGB24);
+rapidpixel::Frame image2(640, 480, rapidpixel::Fourcc::RGB24);
 
 // Compare.
 if (image1 != image2)
@@ -448,7 +445,7 @@ Example:
 
 ```cpp
 // Create Frame object with memory allocation.
-cr::video::Frame image1(640, 480, cr::video::Fourcc::RGB24);
+rapidpixel::Frame image1(640, 480, rapidpixel::Fourcc::RGB24);
 
 // Release Frame object.
 image1.release();

@@ -6,9 +6,7 @@
 
 
 
-namespace cr
-{
-namespace video
+namespace rapidpixel
 {
 
 /// Macro to make FOURCC code.
@@ -208,5 +206,16 @@ private:
     /// Flag data allocation.
     bool m_isAllocated{false};
 };
+}
+
+
+
+// Compatibility: the names of namespace rapidpixel are also available in
+// namespace cr::video.
+namespace cr
+{
+namespace video
+{
+using namespace ::rapidpixel;
 }
 }

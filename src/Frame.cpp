@@ -8,7 +8,7 @@
 
 // Link namespaces.
 using namespace std;
-using namespace cr::video;
+using namespace rapidpixel;
 
 
 
