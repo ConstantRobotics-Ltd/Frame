@@ -50,7 +50,7 @@
 | 4.0.0   | 20.01.2023   | - Interface changed. <br />- Added new pixel formats.<br />- Added shared_ptr for frame data.<br />- Added new methods for copy and compare data.<br />- Added new method for serialization and deserialization frame data.<br />- Tests changed. |
 | 5.0.0   | 19.03.2023   | - shared_ptr replaced by normal pointer.<br />- Documentation updated. |
 | 5.0.1   | 29.05.2023   | - Pixel format description (NV12 and NV21) mistake fixed.    |
-| 5.0.2   | 22.06.2023   | - Added LICENSE.<br />- Repository made public.              |
+| 5.0.2   | 22.06.2023   | - Repository made public.                                    |
 | 5.0.3   | 22.06.2023   | - Added build guide.                                         |
 | 5.0.4   | 06.07.2023   | - Documentation updated.                                     |
 | 5.0.5   | 12.11.2023   | - Fixed errors serialization/deserialization functions.      |
