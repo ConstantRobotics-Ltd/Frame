@@ -247,7 +247,7 @@ Frame(int width, int height, Fourcc fourcc, int size = 0, uint8_t* data = nullpt
 | height    | Frame height. Must be > 0.                                   |
 | fourcc    | Pixel format according to [Fourcc](#supported-pixel-formats) enum. |
 | size      | Optional parameter. Size of external frame data. If user wants to initialize frame data from another buffer it can be done by initializing parameter **size** and **data**. |
-| data      | Optional parameter. Pointer to external frame data to be copied. |
+| data      | Optional parameter. Pointer to external frame data to be copied. The data is copied only if **size** is not negative and not larger than the data size of the pixel format, otherwise the data is not copied and the frame is filled with zeros. |
 
 Example of frame initialization:
 
@@ -406,7 +406,7 @@ Compare operator **"!="** compares data attributes and frame data of to Frame ob
 bool operator!= (Frame& src);
 ```
 
-**Returns:** TRUE if all attributes and data of two Frame objects are identical (or when comparing an object to itself) or FALSE if not.
+**Returns:** TRUE if attributes or data of two Frame objects are not identical or FALSE if they are identical (or when comparing an object to itself).
 
 Example:
 
@@ -419,7 +419,7 @@ rapidpixel::Frame image2(640, 480, rapidpixel::Fourcc::RGB24);
 if (image1 != image2)
     std::cout << "Not identical" << std::endl;
 else
-    std::cout << "Identical"
+    std::cout << "Identical" << std::endl;
 
 // Change data.
 image1.data[0] = rand() % 255;
