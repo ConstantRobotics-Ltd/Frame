@@ -34,7 +34,9 @@
 
 # Overview
 
-**Frame** class is basic class for other projects which describes video frame. Main file **Frame.h** contains declaration of **Frame** class and **Fourcc** enum which describes pixel formats supported by **Frame** class. The library doesn't have any third party dependencies. It uses C++17 standard.
+The **Frame** class describes a video frame; the other libraries of the SDK use it as their frame type. Main file **Frame.h** contains declaration of **Frame** class and **Fourcc** enum which describes pixel formats supported by **Frame** class. The library doesn't have any third party dependencies. It uses C++17 standard.
+
+**Frame** is general-purpose software: it is not tied to any sector or application, and the developer of a program decides what the program does with it.
 
 
 
